@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data-sources>
+	<data-source id="sqlite_jdbc-161ce89eac9-106a37ef85658ccf" provider="generic" driver="sqlite_jdbc" name="SQLite - arianna.db3" save-password="true" show-system-objects="true" read-only="false">
+		<connection server="" database="C:\Python34\progetti\arianna_cli_socket\arianna.db3" url="jdbc:sqlite:C:\Python34\progetti\arianna_cli_socket\arianna.db3" type="dev"/>
+	</data-source>
+	<filters/>
+</data-sources>
