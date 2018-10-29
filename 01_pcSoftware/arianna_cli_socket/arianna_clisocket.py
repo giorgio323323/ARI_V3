@@ -47,7 +47,7 @@ def ricerca_arianna(sock):
 
 
 
-simu=2
+simu=0
 
 if simu==0:
     
@@ -64,7 +64,7 @@ elif simu==2:
         ipclient=''
         print("cerco arianna")
         a=ricerca_arianna(soudp)
-        if len(a)>8:
+        if len(a)>7:
             ipclient=a
             attesa_arianna=0
     TCP_PORT = 81
@@ -360,8 +360,6 @@ thread1.start()
 thread2.start()
 thread3.start()
 thread4.start()
-
-print("thread started")
 
 root = Tk()
 my_gui = arianna_gui.MyFirstGUI(root)

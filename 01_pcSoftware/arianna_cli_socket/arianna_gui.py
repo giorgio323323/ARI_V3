@@ -34,8 +34,12 @@ class MyFirstGUI:
     
     def aggiungi(self,testo):
         self.msglog.insert(END, testo)
+        self.msglog.see(END)
+        
     def aggiungi2(self,testo):
         self.msglog2.insert(END, testo)
+        self.msglog2.see(END)
+
     
     def clicked(self):
         #messagebox.showinfo( "Hello Python", self.comandi.get("1.0",END))
