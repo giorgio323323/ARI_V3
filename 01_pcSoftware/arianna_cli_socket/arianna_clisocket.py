@@ -47,7 +47,7 @@ def ricerca_arianna(sock):
 
 
 
-simu=0
+simu=2
 
 if simu==0:
     
@@ -64,7 +64,7 @@ elif simu==2:
         ipclient=''
         print("cerco arianna")
         a=ricerca_arianna(soudp)
-        if len(a)>7:
+        if len(a)>6:
             ipclient=a
             attesa_arianna=0
     TCP_PORT = 81
@@ -94,8 +94,9 @@ class comunicazione (threading.Thread):
                 else:
                     print("errore ",msg)
             messaggio=self.risp_ari(messaggio)
-            self.com_ari_mov()
-            self.com_ari_altro()
+            if cfg.posatt[5]=='0':
+                self.com_ari_mov()
+                self.com_ari_altro()
             time.sleep(0.1)
 
 
@@ -115,9 +116,10 @@ class comunicazione (threading.Thread):
                     #print(m)
                 elif m[0:3]=='pos':
                     cfg.messaggiesppos.put(m)
+                    print(m)
                     arianna_utility.prt(m, 2, my_gui)
                 elif m[0:4]=='echo':
-                    
+
                     cfg.messaggiesprx.put(m)
                 elif m[0:2]=='ir':
                     
@@ -253,10 +255,6 @@ class elabora (threading.Thread):
                 if arianna_utility.controlla_new_pos(cfg.posatt, newpos):
                     cfg.posatt=newpos
                     cfg.posatt[2]=str(float(cfg.posatt[2])*-1)
-                    datipostxt=open("pos.csv","a")
-                    posxyt=posxyt.replace(":",";")
-                    datipostxt.write(posxyt+"\n")
-                    datipostxt.close()
             
             if len(cfg.percorso)!=0:
                 d,a=arianna_utility.calcola_movimento()

@@ -3,5 +3,8 @@
 	<data-source id="sqlite_jdbc-161ce89eac9-106a37ef85658ccf" provider="generic" driver="sqlite_jdbc" name="SQLite - arianna.db3" save-password="true" show-system-objects="true" read-only="false">
 		<connection server="" database="C:\Python34\progetti\arianna_cli_socket\arianna.db3" url="jdbc:sqlite:C:\Python34\progetti\arianna_cli_socket\arianna.db3" type="dev"/>
 	</data-source>
+	<data-source id="db2_iseries-166edd79849-54f3a90825a7a727" provider="generic" driver="db2_iseries" name="DB2 - as400.idgspa.com" save-password="true" show-system-objects="true" show-util-objects="true" read-only="false">
+		<connection host="as400.idgspa.com" server="" database="" url="jdbc:as400://as400.idgspa.com;" user="aqe05id" password="GgABchESEXbk" type="dev"/>
+	</data-source>
 	<filters/>
 </data-sources>
