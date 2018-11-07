@@ -35,7 +35,7 @@ errore_lettura=10
 
 
 #timestamp x y teta
-posatt=[0,0.0,0.0,1.5708]
+posatt=[0,0.0,0.0,1.5708,0,0,0,0]
 #stato 0 fermo, 1 prenotato mov , 2 in mov
 stato=[0]
 richieste_fermo=[]

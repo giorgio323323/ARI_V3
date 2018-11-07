@@ -33,12 +33,18 @@ def Main():
     print ("Connection from: " + str(addr))
     cont=0
     contrit=0
+    test=0
     data=''
     time.sleep(5)
     dati2="!pos: 0;0;0;6.32 ?"
     conn.send(dati2.encode())
     while True:
-            dati2="!pos: 0;0;0;6.32 ?"
+            if test==0:
+                dati2="!pos: 0;0;0;6.32 ?"
+                misura1='150'
+            if test==1:
+                dati2="!pos: 0;1000;0;6.32 ?"
+                misura1='50'
             conn.send(dati2.encode())
             data=''
             dati2=''
@@ -74,15 +80,16 @@ def Main():
                     messaggioinv=''
                     messaggioinv=messaggio.replace('ang',str(ixx))
                     if ixx==90:
-                        messaggioinv=messaggioinv.replace('misu','500')
+                        messaggioinv=messaggioinv.replace('misu',misura1)
                     else:
-                        messaggioinv=messaggioinv.replace('misu','500')
+                        messaggioinv=messaggioinv.replace('misu',misura1)
                     dati2="!"+messaggioinv+"?"
                     conn.send(dati2.encode())
                     time.sleep(0.3)
                 dati2="!echf?"
                 conn.send(dati2.encode())
                 dati2=''
+                test=1
             
             if str(data).find("!1r")>=0:
                 
@@ -116,6 +123,9 @@ def Main():
 
              
     conn.close()
+
+
      
 if __name__ == '__main__':
     Main()
+    
