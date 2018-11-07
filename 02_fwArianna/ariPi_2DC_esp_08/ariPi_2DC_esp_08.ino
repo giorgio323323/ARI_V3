@@ -1,15 +1,18 @@
 /**@file ariPi_2DC_esp_08.ino */
 /*
 
-	04set18
-	//    delay(25); rimosso in lidar() insieme a 3 assegnamenti
+
+	01Nov18 rivisto lidar. Introdotta guida a dsitanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
+			nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
 	
 	08ott18
 		lidardist da float a int, Piccola modifica in testOstacoli()
-
+		
+	04set18
+	//    delay(25); rimosso in lidar() insieme a 3 assegnamenti
 
 	07ago18
-	verso una revisione 3.0
+	revisione 3.0
 	rimosso sonar
 	rimosso BT
 	rimossa gestione comandi BT
@@ -405,7 +408,7 @@ ari 1 con encoder da 35 ppr
 #define AVANTI			0
 #define INDIETRO 		1
 
-#define KP_DEF			8
+#define KP_TETA_DEF		0.8			///< valore default P contrllo guida con distanza muro
 
 #define MAX_STERZO	1.0				///< massimo valore di sterzo. con 1 si ha una ruota ferma e l'altra al doppio della velocita'
 
@@ -422,7 +425,9 @@ int 	motorSpeedValue = MODERATA;
 int 	panAngle 		= 90;			///< angolo destinazione del servo Pan
 int 	tiltAngle 		= 90;			///< angolo destinazione del servo Tilt
 char 	laser 			= 0;			///< stato uscita puntatore laser
-float	kp 				= KP_DEF;		///< guadagno proporzionale per controllo su distanza muro
+float	kp_guida		= KP_TETA_DEF;	///< guadagno proporzionale per controllo su distanza muro
+float	kd_guida		= 10;		///< guadagno derivativo    per controllo su distanza muro
+
 float	kpTeta			= 2.0;			///< guadagno proporzionale per controllo su teta
 float	kiTeta			= 0.02;			///< guadagno integrale per controllo su teta
 
@@ -430,6 +435,10 @@ float 	MAX_S			= 0.2;			///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
 float 	teta 			= 0.0;			///< teta attuale misurato da odometria
 float 	xpos, ypos 		= 0.0;			///< x    attuale misurato da odometria
 float 	tetaRef			= 0.0;			///< y    attuale misurato da odometria
+
+int 	distRef 		= 60;			///< distanza riferimento per modo R1/R2           [cm]
+int 	distOstacolo    = 25;			///< distanza dell'Ostacolo per arresto automatico [cm]
+
 
 float 	tetaMisura		= 0.0;			///< teta da bussola
 float	xc, yc, tetaCompass; 			///< vettori magnetici dalla bussola
@@ -453,7 +462,13 @@ float 	delta_teta;
 float 	deltaS;
 long 	spdDxCnt, spdSxCnt;	///< velocità encoder, impulsi per tempo di campionamento
   
-unsigned long 	lastTime, lastTimeFast,timeLidar,timeLidar2;
+  
+int 	lidarDistance;  	///< distance measured by lidar
+float	deltaErrore;		///< variabili parte derivativa
+float	erroreK_1;			///< variabili parte derivativa
+float	DerActive;			///< variabili parte derivativa
+
+unsigned long 	lastTime, lastTimeFast,timeLidar;
 float			teta_;
 float 			actualTetaRef;
 char 			SM_R5 = 0;
@@ -555,6 +570,9 @@ void setup() {
 
 void loop() {
 
+static long exeTime, tInit;
+
+
 	mode = TEST_CONTROLLO;
 	
 	getCmd2();							/// gestione comunicazione con ESP
@@ -562,6 +580,7 @@ void loop() {
 		
 	servoPan.write ( panAngle);			/// assegna angoli a pan e tilt
 	servoTilt.write(tiltAngle);
+
 	
 	/**
 		funzionamento corrente con anelli di controllo attivi
@@ -574,7 +593,7 @@ void loop() {
 			raggiorSterzo = 0.0;
 			servoPan.write( panAngle);
 			servoTilt.write(tiltAngle);
-			kp = KP_DEF;
+			kpTeta = KP_TETA_DEF;
 			//digitalWrite( R_SIDE_FRONT,  LOW);
 			//digitalWrite( L_SIDE_FRONT, HIGH);
 			timeLidar=millis();
@@ -585,7 +604,8 @@ void loop() {
 			test e azione ostacoli frontali
   		*/
 		testOstacoli();
-        if (lidardist<50 && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
+		
+        if (lidarDistance<distOstacolo && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
         {
             //motorSpeedRef = FERMO;
             statoRun    	= 99;  	// senza rampa
@@ -615,6 +635,13 @@ void loop() {
 			// parte a 25 ms
 			if ((millis()-lastTime) > TEMPO_CONTROLLO){
 
+				exeTime = micros() - tInit;
+				//Serial.println(lidarDistance);
+				tInit = micros();
+								
+				lidarDistance = tfmini.getDistance();
+
+
 				lastTime = millis();
 
 				updatePosition();
@@ -632,19 +659,32 @@ void loop() {
 					
 
 				
-				// controllo sterzo da sensore laterale dx
+				// controllo sterzo da lidar
+				// R3: PAN  10 muro su lato DX
+				// R1: PAN 170 muro su lato SX
+				// kp usato 0.5
+				// Se errore troppo alto andarci con S limitato
 				if ((statoRun == 1)||(statoRun == 3)){
-					// a seconda dello stato attivo sensore DX o SX
+					
+					errore = float(distRef - lidarDistance);
+					// per come sono messi i motori inverto segno dell
+					// deltaErrore
+					deltaErrore = - errore + erroreK_1;
+					erroreK_1   = errore;
+					//tauD = 100e-3;
+					//ts   = 25e-3
+					//0.7788008 ktD  = exp(-ts/tauD) 
+					DerActive = DerActive*0.7788008 + kd_guida*deltaErrore*0.2211992;
 					
 					if (statoRun == 1) {
-						digitalWrite( R_SIDE_FRONT, HIGH);
-						digitalWrite( L_SIDE_FRONT,  LOW);
-						raggiorSterzo =   kp*errore;  
+						//digitalWrite( R_SIDE_FRONT, HIGH);
+						//digitalWrite( L_SIDE_FRONT,  LOW);
+						raggiorSterzo =   kp_guida*errore  - DerActive;  
 					}
 					else{
-						digitalWrite( R_SIDE_FRONT,  LOW);
-						digitalWrite( L_SIDE_FRONT, HIGH);
-						raggiorSterzo =  -kp*errore; 
+						//digitalWrite( R_SIDE_FRONT,  LOW);
+						//digitalWrite( L_SIDE_FRONT, HIGH);
+						raggiorSterzo =  -kp_guida*errore  + DerActive; 
 					}
 					// errore +/- 0.5
 
@@ -810,7 +850,9 @@ void loop() {
 			}// fine temporizzata veloce
 			
 			differenziale(motorSpeed);
+
 	}
+	
 	
 	/**
 		modo di test. viene usato durante il debug dell'hw. viene configurato alla bisogna. 
@@ -1198,7 +1240,7 @@ static float x, y;
 						
 					case 'p': 
 							if (monitorDati) return;
-							risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) ;
+							risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) + ";" + String(statoRun) + ";" + String(raggiorSterzo) + ";" + String(errore) ;
 						break;  
 
 					case 'q': 
@@ -1341,8 +1383,12 @@ static float x, y;
 					ypos    +=  deltaC*sin(teta);					
 				}
 				
-		Kxx: K. assegna il guadagno proporzionale kp ustao nel modo Run 1 e 3 (sensore di distanza laterale)
-		
+		Knxx: 	assegna i guadagni
+				K0 kpTeta   il guadagno proporzionale kp usato nel modo Run 4
+				K1 kiTeta
+				K2 kp_guida il guadagno proporzionale kp usato nel modo Run 1 e 3 (sensore di distanza laterale)
+				K3 kd_guida il guadagno derivativo    kd usato nel modo Run 1 e 3 (sensore di distanza laterale)
+
 		H0:	 	Homing, assegna lo posizione corrente (x, y, teta) = (0, 0, 0) 
 		
 		Ixxx; 	Integral part. assegna il guadagno della parte integrale kiTeta usato nel modo Run 4.
@@ -1385,6 +1431,10 @@ static float x, y;
 				N1: oy			
 				N2: ky
 				
+		Onxx: 	
+				O0: distRef      [cm]. riferimento per guida a distanza fissa nei modi R1 e R2
+				O0: distOstacolo [cm]. distanza minima sotto la quale ARI si arresta
+				
 		Pxxx: 	orienta il servo PAN della testa. xxx è in gradi, 90° guarda in avanti, 0 a sinistra e 180 a destra.
 				in alcuni casi, a seconda del servo usato, è bene limitare l'escursione ad esempio tra 10 e 170°.
 				
@@ -1397,8 +1447,8 @@ static float x, y;
 				x=2: R2. Il robot effettua un percorso circolare con raggio pari al parametro "C". Il raggiorSterzo può anche essere
 						 imposto direttamente con il comando "S". In questo caso sarà lo scorrimento tra le ruote dx e sx.
 		
-				i modi 1 e 3 fanno viaggiare il robot a una distanza fissa dalla parete laterale. la misura è fatta orinetando il LIDAR.
-				i due modi devono essere rivisti a a causa del nuovo sensore usato.
+				R1 e 2. i modi 1 e 3 fanno viaggiare il robot a una distanza fissa dalla parete laterale. la misura è fatta orinetando il LIDAR.
+						 i due modi sono in test.
 
 				x=99: provoca l'arresto del movimento
 				
@@ -1538,9 +1588,34 @@ static float x, y;
 					risposta = "G: " + String(modoGuida);
 				break;
 
+			// K0 kpTeta
+			// K1 kiTeta
+			// K2 kp_guida
+			// K3 kd_guida
 			case 'K': 
-					kp = x;
-					risposta = "K: " + String(kp, 3);
+				x = (inputString.substring(3)).toFloat();
+				switch (char(inputString[2])) {
+					case '4': 
+//						kp = x;
+//						risposta = "kp: " + String(kp, 6);
+						break;
+					case '0': 
+						kpTeta = x;
+						risposta = "kpTeta: " + String(kpTeta, 6);
+						break;
+					case '1': 
+						kiTeta = x;
+						risposta = "kiTeta: " + String(kiTeta, 6);
+						break;
+					case '2': 
+						kp_guida = x;
+						risposta = "kp_guida: " + String(kp_guida, 6);
+						break;
+					case '3':	
+						kd_guida = x;
+						risposta = "kd_guida: " + String(kd_guida, 6);
+						break;
+				}
 				break;
 
 			case 'H': 
@@ -1592,9 +1667,19 @@ static float x, y;
 				break;
 
 			case 'O': 
-						;
+				x = (inputString.substring(3)).toFloat();
+				switch (char(inputString[2])) {
+					case '0': 
+							distRef  =  (uint16_t)int(x);
+							risposta = "distRef: " + String(distRef);
+						break;
+					case '1': 
+							distOstacolo  =  (uint16_t)int(x);
+							risposta = "distOstacolo: " + String(distOstacolo);
+						break;
+				}
 				break;
-
+				
 			case 'P': 
 					panAngle = x;
 					risposta = "P: " + String(panAngle);
@@ -1761,10 +1846,13 @@ assegnamento dati in e2prom
 1 	ED			f
 2   BASELINE	f
 3 	giroRuota	f
-4	kp			f
+4	kpTeta		f
 5	ox			f
 6	oy 			f
 7	ky			f
+8	kiTeta		f
+9	kp_guida	f
+10	kd_guida	f
 
 ID_010
 */
@@ -1810,9 +1898,9 @@ int  i = 0;
 				break;
 				
 			case 4:	// 
-					if (comando == SCRIVI)			EEPROM.put(eeAddress, kp);
-					if (comando == LEGGI)			EEPROM.get(eeAddress, kp);
-					if (comando == DEFAULT)			kp = 8.0;
+					if (comando == SCRIVI)			EEPROM.put(eeAddress, kpTeta);
+					if (comando == LEGGI)			EEPROM.get(eeAddress, kpTeta);
+					if (comando == DEFAULT)			kpTeta = 8.0;
 
 						eeAddress += sizeof(float); 
 				break;
@@ -1842,6 +1930,30 @@ int  i = 0;
 				break;
 				
 			case 8:	// 
+					if (comando == SCRIVI)			EEPROM.put(eeAddress, kiTeta);
+					if (comando == LEGGI)			EEPROM.get(eeAddress, kiTeta);
+					if (comando == DEFAULT)			ky = 0.02;
+
+						eeAddress += sizeof(float); 
+				break;
+				
+			case 9:	// 
+					if (comando == SCRIVI)			EEPROM.put(eeAddress, kp_guida);
+					if (comando == LEGGI)			EEPROM.get(eeAddress, kp_guida);
+					if (comando == DEFAULT)			ky = 0.5;
+
+						eeAddress += sizeof(float); 
+				break;
+				
+			case 10:	// 
+					if (comando == SCRIVI)			EEPROM.put(eeAddress, kd_guida);
+					if (comando == LEGGI)			EEPROM.get(eeAddress, kd_guida);
+					if (comando == DEFAULT)			ky = 10.0;
+
+						eeAddress += sizeof(float); 
+				break;
+				
+			case 11:	// 
 					endList = 1;
 				break;
 				
@@ -1889,9 +2001,12 @@ void printDatiCalibrazione(void){
 	risposta += "GIRO_RUOTA_SX:   " + String(GIRO_RUOTA_SX		, 6)  + '\n';
 	risposta += "GIRO_RUOTA_DX:   " + String(GIRO_RUOTA_DX		, 6)  + '\n';
 	risposta += "LAGHEZZA_A_MEZZI:" + String(LAGHEZZA_A_MEZZI	, 6)  + '\n';
-	risposta += "kp:              " + String(kp) + '\n';
+	risposta += "kpTeta:          " + String(kpTeta) + '\n';
+	risposta += "kiTeta:          " + String(kiTeta) + '\n';
+	risposta += "kp_guida:        " + String(kp_guida) + '\n';
+	risposta += "kd_guida:        " + String(kd_guida) + '\n';
 	risposta += "ox:              " + String(ox) + '\n';
-	risposta += "oy:              " + String(oy) + '\n'; 
+	risposta += "oy:              " + String(oy) + '\n'; \
 	risposta += "ky:              " + String(ky) + '\n';
 }
 
@@ -1901,25 +2016,14 @@ void printDatiCalibrazione(void){
 
 */
 void testOstacoli(){
-static int ;
+static int i;
 	if (monitorDati) return;
-	/*
+	
 	// ritorna dato a tempo al client
-	if ((millis()-timeLidar2) > 1000){
-		timeLidar2  = millis();
-		risposta	= "mis;" + lidar();
+	if ((millis()-timeLidar) > 1000){
+		timeLidar  = millis();
+		risposta	= "mis;" + String(lidarDistance);
 		sendAnswer2(port);
-	}*/
-	// legge misura a tempo
-	if ((millis()-timeLidar) > 250){
-		timeLidar	= millis();
-		lidardist	= lidar();
-		i++;
-		if i >= 4{
-			risposta	= "mis;" + lidardist;
-			sendAnswer2(port);
-			i = 0;
-		}
 	}
 }
 
