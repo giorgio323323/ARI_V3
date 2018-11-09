@@ -4,6 +4,7 @@ Created on 02/ott/2017
 @author: a.airaghi
 '''
 import queue
+import os
 
 messaggirx=queue.PriorityQueue()  #comandi che arrivano da utente
 messaggicli=queue.Queue(0)        #risposte da mandare a interfaccia
@@ -78,3 +79,4 @@ ang_prec_rel=[]
 dst_prec_rel_ass=[]
 ang_prec_rel_ass=[]
 versoradar='sinistra'
+localpath=os.path.dirname(os.path.abspath(__file__))

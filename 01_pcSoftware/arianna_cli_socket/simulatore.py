@@ -36,14 +36,14 @@ def Main():
     test=0
     data=''
     time.sleep(5)
-    dati2="!pos: 0;0;0;6.32 ?"
+    dati2="!pos: 0;0;0;6.32;0;0;0;0;0 ?"
     conn.send(dati2.encode())
     while True:
             if test==0:
-                dati2="!pos: 0;0;0;6.32 ?"
+                dati2="!pos: 0;0;0;6.32;0;0;0;0 ?"
                 misura1='150'
             if test==1:
-                dati2="!pos: 0;1000;0;6.32 ?"
+                dati2="!pos: 0;1000;0;6.32;0;0;0;0 ?"
                 misura1='50'
             conn.send(dati2.encode())
             data=''
@@ -109,7 +109,7 @@ def Main():
                     contrit=20
                 data=''
             if contrit>0 and contrit<15:        
-                dati2="!pos: "+str(cont)+";"+str(1000+contrit)+";1000;0 ?"
+                dati2="!pos: "+str(cont)+";"+str(1000+contrit)+";1000;0;0;0;0;0;=;0 ?"
                 contrit-=1
             elif contrit>=15:
                 contrit-=1

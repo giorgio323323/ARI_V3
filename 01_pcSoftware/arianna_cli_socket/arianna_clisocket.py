@@ -20,6 +20,7 @@ import subprocess
 import arianna_web
 import math
 import arianna_gui
+import sys
 #import navigazione as navi
 
 
@@ -41,38 +42,47 @@ datipostxt.close()
 
 #ipclient= '192.168.88.129'
 def ricerca_arianna(sock):
-    data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-    print("ip",data,addr)
-    return addr[0]
+    sock.settimeout(5.0)
+    try:
+        data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+        print("ip",data,addr)
+        return addr[0]
+    except:
+        print("non trovo arianna")
+        return '0'
 
 
 
-simu=2
-
-if simu==0:
+simu=1
+attcom=0
+cont=0
+while attcom==0:
     
-    file="C:\\Python34\\progetti\\arianna_cli_socket\\simulatore.py"
-    command1 = subprocess.Popen(['c:\python34\python.exe ',file], shell=True)
-    ipclient='127.0.0.1'
-    TCP_PORT = 8181
-    BUFFER_SIZE = 256
-elif simu==2:
-    #ipclient='192.168.43.235'
-    attesa_arianna=1
-    while attesa_arianna==1:
-        #ipclient='192.168.1.102'
+    if simu==0:
+        
+        file=cfg.localpath+"\\simulatore.py"
+        command1 = subprocess.Popen([sys.executable,file], shell=True)
+        ipclient='127.0.0.1'
+        TCP_PORT = 8181
+        BUFFER_SIZE = 256
+        attcom=1
+    elif simu==1:
+        
         ipclient=''
         print("cerco arianna")
         a=ricerca_arianna(soudp)
         if len(a)>6:
             ipclient=a
             attesa_arianna=0
-    TCP_PORT = 81
-    BUFFER_SIZE = 256
-else:
-    ipclient='192.168.1.102'
-    TCP_PORT = 81
-    BUFFER_SIZE = 256
+            TCP_PORT = 81
+            BUFFER_SIZE = 256
+            attcom=1
+        cont+=1
+        if cont>1:
+            simu=0
+            print("vado in simulazione")
+
+
 
 
         
