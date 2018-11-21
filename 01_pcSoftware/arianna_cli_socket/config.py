@@ -4,6 +4,7 @@ Created on 02/ott/2017
 @author: a.airaghi
 '''
 import queue
+import os
 
 messaggirx=queue.PriorityQueue()  #comandi che arrivano da utente
 messaggicli=queue.Queue(0)        #risposte da mandare a interfaccia
@@ -35,7 +36,7 @@ errore_lettura=10
 
 
 #timestamp x y teta
-posatt=[0,0.0,0.0,1.5708]
+posatt=[0,0.0,0.0,1.5708,0,0,0,0]
 #stato 0 fermo, 1 prenotato mov , 2 in mov
 stato=[0]
 richieste_fermo=[]
@@ -78,3 +79,4 @@ ang_prec_rel=[]
 dst_prec_rel_ass=[]
 ang_prec_rel_ass=[]
 versoradar='sinistra'
+localpath=os.path.dirname(os.path.abspath(__file__))

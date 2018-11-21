@@ -793,7 +793,7 @@ def mappa_seg(mappauso=cfg.mappa,tipo="assoluta",linee=[]):
 def controlla_new_pos(a, f):
     if len(a)<3 or len(f)<3:
         return False
-    if a[1]==f[1] and a[2]==str(float(f[2])*-1) and a[3]==f[3]:
+    if a[1]==f[1] and a[2]==str(float(f[2])*-1) and a[3]==f[3] and a[5]==f[5]:
         return False
     else:
         return True
