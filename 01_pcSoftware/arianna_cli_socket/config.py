@@ -9,7 +9,8 @@ import os
 messaggirx=queue.PriorityQueue()  #comandi che arrivano da utente
 messaggicli=queue.Queue(0)        #risposte da mandare a interfaccia
 
-#code verso esp
+#code verso esp thread safe
+
 messaggiesptx=queue.Queue(0)   #coda messaggi da inviare a esp movimento
 messaggiesptx_altro=queue.Queue(0) #coda messaggi da inviare a esp altro
 messaggiesprx=queue.Queue(0)    #coda messaggi ricevuti da esp
@@ -17,7 +18,7 @@ messaggiesppos=queue.Queue(0)
 
 time_radar=0
 
-id_radar='PDHP'
+id_radar='PDHZ'
 passo_attraversamento=10
 
 #lista percorso
