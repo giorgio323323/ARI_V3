@@ -1,9 +1,14 @@
 /**@file ariPi_2DC_esp_08.ino */
 /*
-
+	11Nov18 stato "ostacolo" 90. In questo stato accetta solo comandi R6.
+			gestione sensore ostacolo frontale 
+			comando B per abilitarlo B0 off, B1 On
+			nota che il Lidar si sente sull'IR. Se tolgo lidar dall'asse
+			non interferisce.
 
 	01Nov18 rivisto lidar. Introdotta guida a dsitanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
 			nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
+			introdotti parametri per guadagni regolatori vari	
 	
 	08ott18
 		lidardist da float a int, Piccola modifica in testOstacoli()
@@ -304,10 +309,10 @@ int VA_zero			= 0;
 #define GIRO_DX_PIN			3 		///< encoder  rotazione albero motore ID_009
 #define GIRO_SX_PIN			2 		///< encoder  rotazione albero motore ID_009
 
-#define R_SIDE_FRONT		31		///< seleziona sensore frontale Dx
-#define L_SIDE_FRONT		29		///< sensore frontale Sx
-#define ENB_R_SIDE_FRONT	30		///< abilita sensore frontale Dx
-#define ENB_L_SIDE_FRONT	28		///< abilita frontale Sx
+#define R_SIDE_FRONT		29		///< sensore frontale Dx		  Low = ostacolo
+#define L_SIDE_FRONT		31		///< sensore frontale Sx          
+#define ENB_R_SIDE_FRONT	28		///< abilita sensore frontale Dx. High = Enable
+#define ENB_L_SIDE_FRONT	30		///< abilita frontale Sx          
 
 
 	
@@ -468,6 +473,9 @@ float	deltaErrore;		///< variabili parte derivativa
 float	erroreK_1;			///< variabili parte derivativa
 float	DerActive;			///< variabili parte derivativa
 
+char 	occlusoDavanti;		///< sensore IR anteriore, LOW in presenza di ostacolo
+char 	enableFrontSensor = 1;	///< sensore IR anteriore, High abilitato
+
 unsigned long 	lastTime, lastTimeFast,timeLidar;
 float			teta_;
 float 			actualTetaRef;
@@ -520,10 +528,14 @@ void setup() {
 	pinMode(laserPin, 	OUTPUT);
 
 	// setup digital inputs for IR sensors
-	pinMode(R_SIDE_FRONT, 		OUTPUT);
-	pinMode(L_SIDE_FRONT, 		OUTPUT);
+	pinMode(R_SIDE_FRONT, 		INPUT);			// non usato
+	pinMode(L_SIDE_FRONT, 		INPUT);			
+	pinMode(ENB_R_SIDE_FRONT, 	OUTPUT);		// non usato
+	pinMode(ENB_L_SIDE_FRONT, 	OUTPUT);
+	
 	pinMode(GIRO_DX_PIN,  		INPUT);
 	pinMode(GIRO_SX_PIN,  		INPUT);
+	
 	
 	digitalWrite(laserPin, LOW);
 
@@ -594,8 +606,7 @@ static long exeTime, tInit;
 			servoPan.write( panAngle);
 			servoTilt.write(tiltAngle);
 			kpTeta = KP_TETA_DEF;
-			//digitalWrite( R_SIDE_FRONT,  LOW);
-			//digitalWrite( L_SIDE_FRONT, HIGH);
+			digitalWrite( ENB_L_SIDE_FRONT, HIGH);
 			timeLidar=millis();
 			firstRun = 0;
 		}
@@ -603,9 +614,18 @@ static long exeTime, tInit;
 		/** 
 			test e azione ostacoli frontali
   		*/
-		testOstacoli();
+		digitalWrite(ENB_L_SIDE_FRONT, enableFrontSensor);		// 
 		
-        if (lidarDistance<distOstacolo && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
+		testOstacoli();
+		// verifica sensore IR anteriore, Low quando ostacolo
+		// se IR disabilitato non viene letto poichè a casusa del lidar
+		// anche se disabilitato ritorna un segnale.
+		
+		if (enableFrontSensor)	occlusoDavanti = !digitalRead(L_SIDE_FRONT) || lidarDistance<distOstacolo;
+		else					occlusoDavanti = lidarDistance<distOstacolo;
+			
+		
+        if (occlusoDavanti && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
         {
             //motorSpeedRef = FERMO;
             statoRun    	= 99;  	// senza rampa
@@ -677,13 +697,9 @@ static long exeTime, tInit;
 					DerActive = DerActive*0.7788008 + kd_guida*deltaErrore*0.2211992;
 					
 					if (statoRun == 1) {
-						//digitalWrite( R_SIDE_FRONT, HIGH);
-						//digitalWrite( L_SIDE_FRONT,  LOW);
 						raggiorSterzo =   kp_guida*errore  - DerActive;  
 					}
 					else{
-						//digitalWrite( R_SIDE_FRONT,  LOW);
-						//digitalWrite( L_SIDE_FRONT, HIGH);
 						raggiorSterzo =  -kp_guida*errore  + DerActive; 
 					}
 					// errore +/- 0.5
@@ -1331,7 +1347,7 @@ static float x, y;
 		Axxx: Alfa. assegna Alfa, la direzione del robot. xxx è l'angolo in radianti, es 3.14. La direzione zero è definita all'accensione del robot. E' la direzione in avanti. Coincide con l'asse x.
 				Alfa è positivo in senso antiorario.
 
-		Bxxx: assegna il guadagno proporzionale KpTeta
+		Bx: 	enableFrontSensor. 1 Enable, 0 disable
 			
 		Cxxx: assegna "raggiorSterzo" in [m]. La variabile è usata nella movimento R2, stabilisce il raggio della circonferenza su cui ruota il robot.
 		
@@ -1504,8 +1520,8 @@ static float x, y;
 				break;
 
 			case 'B': 
-					kpTeta = x;
-					risposta = "B: " + String(kpTeta, 3);
+					enableFrontSensor = x;
+					risposta = "B: " + String(enableFrontSensor);
 				break;
 
 			case 'C': 
