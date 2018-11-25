@@ -1,10 +1,14 @@
 /**@file ariPi_2DC_esp_08.ino */
 /*
+	25nov18 definiti LED1..3
+			attivato led1 insieme a LedPuntatore
+
 	11Nov18 stato "ostacolo" 90. In questo stato accetta solo comandi R6.
 			gestione sensore ostacolo frontale 
 			comando B per abilitarlo B0 off, B1 On
 			nota che il Lidar si sente sull'IR. Se tolgo lidar dall'asse
 			non interferisce.
+
 
 	01Nov18 rivisto lidar. Introdotta guida a dsitanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
 			nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
@@ -313,6 +317,9 @@ int VA_zero			= 0;
 #define L_SIDE_FRONT		31		///< sensore frontale Sx          
 #define ENB_R_SIDE_FRONT	28		///< abilita sensore frontale Dx. High = Enable
 #define ENB_L_SIDE_FRONT	30		///< abilita frontale Sx          
+#define LED1				34		///< LED1          
+#define LED2				33		///< LED2          
+#define LED3				32		///< LED3          
 
 
 	
@@ -499,6 +506,14 @@ void setup() {
     Serial.begin 	(115200);
     Serial.println	("setup starting!");
     Serial.println	("Init: ari2DC_esp_08.ino 08ago18");
+
+	pinMode(LED1, 				OUTPUT);
+	pinMode(LED2, 				OUTPUT);
+	pinMode(LED3, 				OUTPUT);
+
+	digitalWrite(LED1, HIGH);
+	digitalWrite(LED2, HIGH);
+	digitalWrite(LED3, HIGH);
 	
 	TFserial.begin 	(TFMINI_BAUDRATE);  // seriale lidar
     tfmini.begin	(&TFserial); 
@@ -532,6 +547,7 @@ void setup() {
 	pinMode(L_SIDE_FRONT, 		INPUT);			
 	pinMode(ENB_R_SIDE_FRONT, 	OUTPUT);		// non usato
 	pinMode(ENB_L_SIDE_FRONT, 	OUTPUT);
+
 	
 	pinMode(GIRO_DX_PIN,  		INPUT);
 	pinMode(GIRO_SX_PIN,  		INPUT);
@@ -574,6 +590,9 @@ void setup() {
     Serial.println( GIRO_RUOTA_SX   );
 
 	firstRun = 1;
+
+	digitalWrite(LED1, LOW);
+
     Serial.println("setup done!");
 	
 }
@@ -656,7 +675,7 @@ static long exeTime, tInit;
 			if ((millis()-lastTime) > TEMPO_CONTROLLO){
 
 				exeTime = micros() - tInit;
-				//Serial.println(lidarDistance);
+				Serial.println(lidarDistance);
 				tInit = micros();
 								
 				lidarDistance = tfmini.getDistance();
@@ -1505,14 +1524,15 @@ static float x, y;
 //          x==(inputString.substring(2)).toInt();
 		//with only one parameter looks for a given substring from the position given to the end of the string. 
 		x = (inputString.substring(2)).toFloat();
-
+		/*
 		Serial.print  ("comandi- ch[1]: ");
 		Serial.print  (inputString[1]);
 		Serial.print  (",xstr: ");
 		Serial.print	(inputString.substring(2));
 		Serial.print  (",x: ");
 		Serial.println(x);
-
+		*/
+		
 		switch (char(inputString[1])) {
 			case 'A': 
 					tetaRef  = x*3.14/180.0;
@@ -1649,11 +1669,13 @@ static float x, y;
 					if (x == 0.0){
 						Serial.println("L0");
 						digitalWrite(laserPin, LOW);
+						digitalWrite(LED1, LOW);
 						laser = 0;
 					}
 					else{
 						Serial.println("L1");
 						digitalWrite(laserPin, HIGH);
+						digitalWrite(LED1, HIGH);
 						laser = 1;
 					}
 					risposta = "L: " + String(x);
