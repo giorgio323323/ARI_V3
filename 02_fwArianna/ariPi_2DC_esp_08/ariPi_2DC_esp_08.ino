@@ -1,16 +1,28 @@
+#define V_FW_ATMEGA	"3.04.00"
 /**@file ariPi_2DC_esp_08.ino */
 /*
+	01dic18 3.04.00
+			sensore ostacolo anteriore off alla partenza. va abilitato per usarlo
+			aggiunta V_FW_ATMEGA
+			formato M.mm.sb
+			M: il cambio richiede modifiche hw. Aggiungere un sensore (es sensore frontale) non è una modifica hw, è una opzione
+			mm: aggiunta di una funzione, le versioni precedenti non la supportano. es la gestione del sensore frontale.
+			sb: subversion. si migliorano funzioni o corregono bachi. nulla viene aggiunto.
+			
+			richiesta "h" versione V_FW_ATMEGA
+			printDatiCalibrazione dava errore per risposta troppo lunga
+			
 	25nov18 definiti LED1..3
 			attivato led1 insieme a LedPuntatore
 
-	11Nov18 stato "ostacolo" 90. In questo stato accetta solo comandi R6.
+	11Nov18 
 			gestione sensore ostacolo frontale 
 			comando B per abilitarlo B0 off, B1 On
 			nota che il Lidar si sente sull'IR. Se tolgo lidar dall'asse
 			non interferisce.
 
 
-	01Nov18 rivisto lidar. Introdotta guida a dsitanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
+	01Nov18 rivisto lidar. Introdotta guida a distanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
 			nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
 			introdotti parametri per guadagni regolatori vari	
 	
@@ -449,7 +461,7 @@ float 	xpos, ypos 		= 0.0;			///< x    attuale misurato da odometria
 float 	tetaRef			= 0.0;			///< y    attuale misurato da odometria
 
 int 	distRef 		= 60;			///< distanza riferimento per modo R1/R2           [cm]
-int 	distOstacolo    = 25;			///< distanza dell'Ostacolo per arresto automatico [cm]
+int 	distOstacolo    = 51;		    ///< distanza dell'Ostacolo per arresto automatico [cm]. N.B. sotto i 50 cm a volte non legge.
 
 
 float 	tetaMisura		= 0.0;			///< teta da bussola
@@ -481,7 +493,7 @@ float	erroreK_1;			///< variabili parte derivativa
 float	DerActive;			///< variabili parte derivativa
 
 char 	occlusoDavanti;		///< sensore IR anteriore, LOW in presenza di ostacolo
-char 	enableFrontSensor = 1;	///< sensore IR anteriore, High abilitato
+char 	enableFrontSensor = 0;	///< sensore IR anteriore, High abilitato
 
 unsigned long 	lastTime, lastTimeFast,timeLidar;
 float			teta_;
@@ -1272,6 +1284,10 @@ static float x, y;
 					case 'g': 
 							risposta = "g: " + String(tetaCompass);
 						break;
+
+					case 'h': 
+							risposta = "h-V FW: " + String(V_FW_ATMEGA);
+						break;
 						
 					case 'p': 
 							if (monitorDati) return;
@@ -2031,21 +2047,21 @@ int  i = 0;
 
 void printDatiCalibrazione(void){
 	
-	risposta  = "ED:              " + String(ED					, 6) + '\n';
-	risposta += "ED_BASE:         " + String(ED_BASE			, 6)  + '\n';
-	risposta += "BASELINE         " + String(BASELINE			, 6)  + '\n';
+	risposta  = "ED:      " + String(ED					, 6) + '\n';
+	risposta += "ED_BASE: " + String(ED_BASE			, 6)  + '\n';
+	risposta += "BASELINE " + String(BASELINE			, 6)  + '\n';
 
-	risposta += "GIRO_RUOTA:      " + String(GIRO_RUOTA			, 6)  + '\n';
-	risposta += "GIRO_RUOTA_SX:   " + String(GIRO_RUOTA_SX		, 6)  + '\n';
-	risposta += "GIRO_RUOTA_DX:   " + String(GIRO_RUOTA_DX		, 6)  + '\n';
-	risposta += "LAGHEZZA_A_MEZZI:" + String(LAGHEZZA_A_MEZZI	, 6)  + '\n';
-	risposta += "kpTeta:          " + String(kpTeta) + '\n';
-	risposta += "kiTeta:          " + String(kiTeta) + '\n';
-	risposta += "kp_guida:        " + String(kp_guida) + '\n';
-	risposta += "kd_guida:        " + String(kd_guida) + '\n';
-	risposta += "ox:              " + String(ox) + '\n';
-	risposta += "oy:              " + String(oy) + '\n'; \
-	risposta += "ky:              " + String(ky) + '\n';
+	risposta += "GIRO_RUOTA:" + String(GIRO_RUOTA			, 6)  + '\n';
+//	risposta += "GIRO_RUOTA_SX:   " + String(GIRO_RUOTA_SX		, 6)  + '\n';
+//	risposta += "GIRO_RUOTA_DX:   " + String(GIRO_RUOTA_DX		, 6)  + '\n';
+//	risposta += "LAGHEZZA_A_MEZZI:" + String(LAGHEZZA_A_MEZZI	, 6)  + '\n';
+	risposta += "kpTeta:  " + String(kpTeta) + '\n';
+	risposta += "kiTeta:  " + String(kiTeta) + '\n';
+	risposta += "kp_guida: " + String(kp_guida) + '\n';
+	risposta += "kd_guida: " + String(kd_guida) + '\n';
+	risposta += "ox: " + String(ox) + '\n';
+	risposta += "oy: " + String(oy) + '\n'; 
+	risposta += "ky: " + String(ky) + '\n';
 }
 
 
