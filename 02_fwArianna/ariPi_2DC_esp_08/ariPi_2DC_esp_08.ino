@@ -687,7 +687,7 @@ static long exeTime, tInit;
 			if ((millis()-lastTime) > TEMPO_CONTROLLO){
 
 				exeTime = micros() - tInit;
-				Serial.println(lidarDistance);
+				//Serial.println(lidarDistance);
 				tInit = micros();
 								
 				lidarDistance = tfmini.getDistance();
