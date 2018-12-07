@@ -20,7 +20,9 @@ Per ultimo ha una interfaccia per bussola magnetica e navigatore inerziale compl
 
 Ogni suo aspetto può essere studiato senza timore di rompere qualcosa.
 
-....
 
+
+istruzioni di installazione del SW nel folder:
+ARI_V3\00_doc\00_installaECompila
 
 
