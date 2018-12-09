@@ -351,7 +351,7 @@ class mappa (threading.Thread):
             else:
                 time.sleep(2)
             
-# **********param default****
+# **********param default presi da config****
 cfg.messaggirx.put((time.time(),'>p9600'))
 time.sleep(0.2)
 cfg.messaggirx.put((time.time(),'3F'+cfg.ED))
