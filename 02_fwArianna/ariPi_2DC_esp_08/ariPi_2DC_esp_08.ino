@@ -8,15 +8,15 @@
 			M: il cambio richiede modifiche hw. Aggiungere un sensore (es sensore frontale) non è una modifica hw, è una opzione
 			mm: aggiunta di una funzione, le versioni precedenti non la supportano. es la gestione del sensore frontale.
 			sb: subversion. si migliorano funzioni o corregono bachi. nulla viene aggiunto.
-			
+
 			richiesta "h" versione V_FW_ATMEGA
 			printDatiCalibrazione dava errore per risposta troppo lunga
-			
+
 	25nov18 definiti LED1..3
 			attivato led1 insieme a LedPuntatore
 
-	11Nov18 
-			gestione sensore ostacolo frontale 
+	11Nov18
+			gestione sensore ostacolo frontale
 			comando B per abilitarlo B0 off, B1 On
 			nota che il Lidar si sente sull'IR. Se tolgo lidar dall'asse
 			non interferisce.
@@ -24,11 +24,11 @@
 
 	01Nov18 rivisto lidar. Introdotta guida a distanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
 			nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
-			introdotti parametri per guadagni regolatori vari	
-	
+			introdotti parametri per guadagni regolatori vari
+
 	08ott18
 		lidardist da float a int, Piccola modifica in testOstacoli()
-		
+
 	04set18
 	//    delay(25); rimosso in lidar() insieme a 3 assegnamenti
 
@@ -40,25 +40,25 @@
 	sensori di distanza IR: tolto interrupt per misura lineare, inserito stato ON/Off
 	FILE_PATTERNS = [...] *.ino
 	EXTENSION_MAPPING = ino=c doxygen config filebuf
-	
+
 	da ora i commenti più recenti sono in alto
 	intestazioni routine per doxygen
 / * *
- 
+
      @brief  Gets the most recent sensor values and transform in angle.
             This function reads only x and y magnetometer values
             The coefficients for correction are applied.
-			
+
 			the output is tetaCompass which is a global variable.
-	
+
     @param  a .....
     @return b ....
- 
- 
+
+
  * /
- 
-/// Brief description. 
-https://learn.adafruit.com/the-well-automated-arduino-library/doxygen-tips	
+
+/// Brief description.
+https://learn.adafruit.com/the-well-automated-arduino-library/doxygen-tips
 http://www.stack.nl/~dimitri/doxygen/manual/markdown.html
 
 
@@ -98,7 +98,7 @@ messo comando f per leggere distanza degli IR
 R5 e R6 girano ma non danno risultati ripetibili
 m sonar rivedere
 
- 
+
 
 
 
@@ -110,28 +110,28 @@ aggiustare le dirVx = 0 gestite in odometro
  * arianna
  * giorgio323@gmail.com
  * infostuffcube@gmail.com
- * 
+ *
  * 16nov16	inizio
- 
+
 	test su sensore ir
 	l'idea è trovare il tempo a 1 rispetto al tempo totale
 	questo è un indicatore della distanza
-	
-	10dic16	sensore rotazione motore (odometro)	
+
+	10dic16	sensore rotazione motore (odometro)
 			spostato su Raspberry la compilazione
 			ID_000  digitalPinToInterrupt(SIDE_IR_PIN) non dichiarato
 
 	27dic16	comandi da seriale
-			gestione arrivo in posizione 
+			gestione arrivo in posizione
 			aggiunto sonar montato su servo
-			
+
 			per trovare la direzione da puntare cerco il punto a distanza minima
 			con un algoritmo di bisezione
 			faccio con uno script esterno
- 
+
 	02gen17	penso a gestire sensore dx e sx
 	numbers 0 (on digital pin 2) and 1 (on digital pin 3)
-	
+
 	19gen17	differenziale elettronico
 			tolgo ovfTimer perchè usato dai PWM
 			gestire misura sensore senza interrupt timer
@@ -141,13 +141,13 @@ aggiustare le dirVx = 0 gestite in odometro
 			quando non è connesso
 			code 0000
 			http://wiki.seeedstudio.com/wiki/Bluetooth_Bee
-			
-	23mar17 ID_001 rimosso limite angolo teta		
+
+	23mar17 ID_001 rimosso limite angolo teta
 
 	14mag17 si aggiunge comunicazione con esp ID_002
 			si usa la serial2 verso esp
 			modifica protocollo Alessandro Airaghi
-			
+
 	21mag17 ripristinato BT in parallelo ID_003
 			Ok
 
@@ -158,16 +158,16 @@ aggiustare le dirVx = 0 gestite in odometro
 			nel controllo di teta porto -2 <= S <= 2  ID_005
 
 	29lug17	macchina a stati e rampa su tetaRef Rr
-			
-			
-	11ago17	comando H modificato (distanza, odometro, lastPosition = 0.0)		
+
+
+	11ago17	comando H modificato (distanza, odometro, lastPosition = 0.0)
 			introdotto statoRun 99. Questo indica una rampa in corso.
 			precedentemente lo statoRun 0 era presente anche durante la rampa di fermata
 			il 99 serve per eviatre di inserire un ritardo coi comandi seriali per attendere la fine rampa
-			
+
 			nella lettura encoder se tensione al motore zero non conto impulsi.
 			serve per evitare che quando curva su una ruota ferma possano esserci movimenti
-	
+
 	22ago17	ariPi_2DC_esp_02.ino
 			messo ordine su nomi e posizioni encoder motori etc
 			sistemati segni delle reazioni
@@ -178,7 +178,7 @@ aggiustare le dirVx = 0 gestite in odometro
 			salvo dati di taratura in eeprom	ID_006
 			rivisti sensori IR left e dx
 	20set17
-			inserita richiesta p per avere posx posy e teta in una sola volta 
+			inserita richiesta p per avere posx posy e teta in una sola volta
 	060tt17
 		ale
 		aggiunta richiesta q per scansione area circostante con sonar per mappa
@@ -200,20 +200,20 @@ aggiustare le dirVx = 0 gestite in odometro
 			un micro esegue il sw nel foleder IRrecvDemo_x.ino
 			viene fatto un bridge tra comandi da seriale verso la porta 4
 			al momento è bloccante
-			
-	sistemare i parametri in funzione di ed anche per ari02 
+
+	sistemare i parametri in funzione di ed anche per ari02
 
 
 
 	10feb18
 		merge
-		
+
 	21feb18
 		// ID_008 dimenticato un pezzo
-		
+
 	05mag18
-		merge per ari06. 
-		Lidar, 
+		merge per ari06.
+		Lidar,
 		Esp con IR
 		tolgo BlueTooth
 		tolgo ponte verso scheda IR
@@ -236,22 +236,24 @@ aggiustare le dirVx = 0 gestite in odometro
 	indici (Es dati taratura F0, F1, F2 ..
 	Rimango compatibile con comandi precedenti
 	Salvati coefficienti taratura bussola in EEprom
-	
-	  
+
+
 	liberia tfmini.h   https://github.com/opensensinglab/tfmini/tree/master/src
-	
-	
+
+
  * Simple test for the DRV8833 library.
  * The DRV8833 is a dual motor driver carrier made by Pololu.
  * You can find it here: https://www.pololu.com/product/2130
 
+
+   09/12/2018 gestione lidar con ritorno in mm divido il valore per 10
  */
 
 
 
 #include <SPI.h>
 #include <SD.h>
-#include <Servo.h> 
+#include <Servo.h>
 #include <TFMini.h>
 #include <EEPROM.h>			// ID_006
 
@@ -259,7 +261,7 @@ aggiustare le dirVx = 0 gestite in odometro
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
-#include <math.h>   
+#include <math.h>
 // \ID_009
 
 
@@ -275,8 +277,8 @@ aggiustare le dirVx = 0 gestite in odometro
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345); //ID_009
 
-Servo servoPan;      	// create servo object to control a servo 
-Servo servoTilt;      	// create servo object to control a servo 
+Servo servoPan;      	// create servo object to control a servo
+Servo servoTilt;      	// create servo object to control a servo
 
 
 //********** ID_002
@@ -303,7 +305,7 @@ DRV8833 driver = DRV8833();
 // Pin numbers. Replace with your own!
 // Attach the Arduino's pin numbers below to the
 // Ain1 and Ain2 DRV8833 pins.
-// N.B. la libreria sembra non gestire i pin 44-46 (timer diverso) 
+// N.B. la libreria sembra non gestire i pin 44-46 (timer diverso)
 const int MTR_A_DX_P1 	= 5;	/*!< output pin 1 for right motor */
 const int MTR_A_DX_P2 	= 6;	/*!< output pin 2 for right motor */
 const int MTR_B_SX_P1 	= 9;	/*!< output pin 1 for left motor */
@@ -326,15 +328,15 @@ int VA_zero			= 0;
 #define GIRO_SX_PIN			2 		///< encoder  rotazione albero motore ID_009
 
 #define R_SIDE_FRONT		29		///< sensore frontale Dx		  Low = ostacolo
-#define L_SIDE_FRONT		31		///< sensore frontale Sx          
+#define L_SIDE_FRONT		31		///< sensore frontale Sx
 #define ENB_R_SIDE_FRONT	28		///< abilita sensore frontale Dx. High = Enable
-#define ENB_L_SIDE_FRONT	30		///< abilita frontale Sx          
-#define LED1				34		///< LED1          
-#define LED2				33		///< LED2          
-#define LED3				32		///< LED3          
+#define ENB_L_SIDE_FRONT	30		///< abilita frontale Sx
+#define LED1				34		///< LED1
+#define LED2				33		///< LED2
+#define LED3				32		///< LED3
 
 
-	
+
 
 #define ledPin 				13		///< led segnalazioni varie su Arduino
 #define laserPin 			8		///< porta puntatore laser
@@ -355,20 +357,20 @@ char firstRun;
 /*	V = w*r	-> w=V/raggio di curvatura
 	a larghezza tra due ruote
 	V1 = V*(r+a/2)/r = V(1 + a/2r)
-	
+
 */
 
 
 /*
-#ifdef ARI2 
+#ifdef ARI2
   // arianna 2 ruota sx 70 diametro
   //           ruota dx 69 diametro
   // encoder 20 ppr
   #define GIRO_RUOTA        2.728  	//  20ppr 5.25 // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-  #define GIRO_RUOTA_DX     2.719074  // 2.7083 //  20ppr 5.25 
-  #define GIRO_RUOTA_SX     2.736926	//2.7275 //  20ppr 5.25 
+  #define GIRO_RUOTA_DX     2.719074  // 2.7083 //  20ppr 5.25
+  #define GIRO_RUOTA_SX     2.736926	//2.7275 //  20ppr 5.25
   #define MIN_TIME_TRA_PULSE    18 	// tempo minimo tra impulsi encoder per evitare errate letture
-  
+
   #define BASELINE 		  129.826 //150.0	// carreggiata
 //  #define LAGHEZZA_A_MEZZI	0.065 //0.09	// mezza carreggiata (larghezza delle due ruote)
 #endif
@@ -378,12 +380,12 @@ char firstRun;
   // encoder 35 ppr
   //#define ED 0.95 //0.972891
   //#define GIRO_RUOTA 			1.131 		// mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-  //#define GIRO_RUOTA_SX       GIRO_RUOTA*2.0/(1.0+ED) 
-  //#define GIRO_RUOTA_DX       GIRO_RUOTA*2.0/(1.0+1.0/ED) 
-  //#define GIRO_RUOTA_SX       1.1465408 
+  //#define GIRO_RUOTA_SX       GIRO_RUOTA*2.0/(1.0+ED)
+  //#define GIRO_RUOTA_DX       GIRO_RUOTA*2.0/(1.0+1.0/ED)
+  //#define GIRO_RUOTA_SX       1.1465408
   //#define GIRO_RUOTA_DX       1.1154592
   //#define MIN_TIME_TRA_PULSE    9  		// unsigned long  20 ppr 18 // tempo minimo tra impulsi encoder per evitare errate letture
-  
+
   //#define BASELINE 		  	137.817 		// carreggiata
 //  #define LAGHEZZA_A_MEZZI	0.069 		// mezza carregiata (larghezza delle due ruote)
 #endif
@@ -400,24 +402,24 @@ float GIRO_RUOTA 	= 1.0;		/*!< (GIRO_RUOTA_SX + GIRO_RUOTA_DX)/2. descrizione ne
 unsigned long MIN_TIME_TRA_PULSE = 9;  		/*!< tempo minimo tra impulsi encoder per evitare errate letture [ms]
 
 
-// aggiorno per encoder da 35 ppr prima erano 20 
+// aggiorno per encoder da 35 ppr prima erano 20
 /*
 ari 1 con encoder da 20 ppr
 #define GIRO_RUOTA        2.625 //  20ppr 5.25 // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-#define GIRO_RUOTA_DX     2.625 //  20ppr 5.25 
-#define GIRO_RUOTA_SX     2.615 //  20ppr 5.25 
+#define GIRO_RUOTA_DX     2.625 //  20ppr 5.25
+#define GIRO_RUOTA_SX     2.615 //  20ppr 5.25
 #define MIN_TIME_TRA_PULSE    9 //  20 ppr 18 // tempo minimo tra impulsi encoder per evitare errate letture
 */
 /*
 ari 1 con encoder da 35 ppr
 #define GIRO_RUOTA        1.5     //  35ppr // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-#define GIRO_RUOTA_DX     1.5     //  35ppr 
-#define GIRO_RUOTA_SX     1.494   //  35ppr 
+#define GIRO_RUOTA_DX     1.5     //  35ppr
+#define GIRO_RUOTA_SX     1.494   //  35ppr
 #define MIN_TIME_TRA_PULSE   5    //  35ppr tempo minimo tra impulsi encoder per evitare errate letture
 */
 
 
-#define E_POSIZIONAMENTO  	10		///< [mm], distanza dall'obbiettivo dove il robot si arresta	
+#define E_POSIZIONAMENTO  	10		///< [mm], distanza dall'obbiettivo dove il robot si arresta
 #define E_APPROCCIO			300		///< [mm], distanza dall'obbiettivo dove il robot inizia a rallentare
 
 /*
@@ -455,14 +457,14 @@ float	kd_guida		= 10;		///< guadagno derivativo    per controllo su distanza mur
 float	kpTeta			= 2.0;			///< guadagno proporzionale per controllo su teta
 float	kiTeta			= 0.02;			///< guadagno integrale per controllo su teta
 
-float 	MAX_S			= 0.2;			///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo 
+float 	MAX_S			= 0.2;			///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
 float 	teta 			= 0.0;			///< teta attuale misurato da odometria
 float 	xpos, ypos 		= 0.0;			///< x    attuale misurato da odometria
 float 	tetaRef			= 0.0;			///< y    attuale misurato da odometria
 
 int 	distRef 		= 60;			///< distanza riferimento per modo R1/R2           [cm]
 int 	distOstacolo    = 51;		    ///< distanza dell'Ostacolo per arresto automatico [cm]. N.B. sotto i 50 cm a volte non legge.
-
+int 	divLidar    = 10;				// alcune versioni del lidar ritornano in mm altre in cm, uniformiamo a cm
 
 float 	tetaMisura		= 0.0;			///< teta da bussola
 float	xc, yc, tetaCompass; 			///< vettori magnetici dalla bussola
@@ -485,8 +487,8 @@ float 	i_part = 0;			///< parte integrale regolatore guida
 float 	delta_teta;
 float 	deltaS;
 long 	spdDxCnt, spdSxCnt;	///< velocità encoder, impulsi per tempo di campionamento
-  
-  
+
+
 int 	lidarDistance;  	///< distance measured by lidar
 float	deltaErrore;		///< variabili parte derivativa
 float	erroreK_1;			///< variabili parte derivativa
@@ -511,8 +513,8 @@ sensors_event_t event;		// ID_009
 
 /*!
     @brief  setup della parte hardware e caricamento coefficienti da E2prom
-	
-*/	 
+
+*/
 void setup() {
     // initialize serial:
     Serial.begin 	(115200);
@@ -526,16 +528,16 @@ void setup() {
 	digitalWrite(LED1, HIGH);
 	digitalWrite(LED2, HIGH);
 	digitalWrite(LED3, HIGH);
-	
+
 	TFserial.begin 	(TFMINI_BAUDRATE);  // seriale lidar
-    tfmini.begin	(&TFserial); 
+    tfmini.begin	(&TFserial);
 
     ESPserial.begin (115200);  // ID_002
 
     // LSM303_magn unit
     /* Enable auto-gain */
     mag.enableAutoRange(true);
-    
+
     /* Initialise the sensor */
     Serial.println("init LSM");
 	bussola = 1;
@@ -546,49 +548,49 @@ void setup() {
 		bussola = 0;
     }
     Serial.println("init LSM done");
-    
+
     /* Display some basic information on this sensor */
     displaySensorDetails();
 
-	
+
 	pinMode(ledPin, 	OUTPUT);
 	pinMode(laserPin, 	OUTPUT);
 
 	// setup digital inputs for IR sensors
 	pinMode(R_SIDE_FRONT, 		INPUT);			// non usato
-	pinMode(L_SIDE_FRONT, 		INPUT);			
+	pinMode(L_SIDE_FRONT, 		INPUT);
 	pinMode(ENB_R_SIDE_FRONT, 	OUTPUT);		// non usato
 	pinMode(ENB_L_SIDE_FRONT, 	OUTPUT);
 
-	
+
 	pinMode(GIRO_DX_PIN,  		INPUT);
 	pinMode(GIRO_SX_PIN,  		INPUT);
-	
-	
+
+
 	digitalWrite(laserPin, LOW);
 
 	// attaches the servo on pin .. to the servo object
 	servoPan.attach  (SERVO_PAN_PIN );
 	servoTilt.attach (SERVO_TILT_PIN);
-	
+
 	servoPan.write ( 90);
 	servoTilt.write( 90);
 
-	
+
 	// Attach motors to the input pins:
 	driver.attachMotorA(MTR_A_DX_P1, MTR_A_DX_P2);
 	driver.attachMotorB(MTR_B_SX_P1, MTR_B_SX_P2);
 
 	differenziale(0);
-  
-	// odometro 
+
+	// odometro
 	attachInterrupt(digitalPinToInterrupt(GIRO_DX_PIN), odometroDxMisuraHW, CHANGE);
 	attachInterrupt(digitalPinToInterrupt(GIRO_SX_PIN), odometroSxMisuraHW, CHANGE);
 
 	Serial.flush();
 	ESPserial.flush();  // ID_002
-	
-	
+
+
 	DataEEprom(LEGGI);  // carica coefficienti da e2prom
 	//DataEEprom(5);  	/// 5 ARI3, 4 ARI2 carica coefficienti da e2prom
 
@@ -606,7 +608,7 @@ void setup() {
 	digitalWrite(LED1, LOW);
 
     Serial.println("setup done!");
-	
+
 }
 
 
@@ -617,14 +619,14 @@ static long exeTime, tInit;
 
 
 	mode = TEST_CONTROLLO;
-	
+
 	getCmd2();							/// gestione comunicazione con ESP
 	rSeriale();							/// gestione comunicazione con ESP
-		
+
 	servoPan.write ( panAngle);			/// assegna angoli a pan e tilt
 	servoTilt.write(tiltAngle);
 
-	
+
 	/**
 		funzionamento corrente con anelli di controllo attivi
 	*/
@@ -641,21 +643,21 @@ static long exeTime, tInit;
 			timeLidar=millis();
 			firstRun = 0;
 		}
-		
-		/** 
+
+		/**
 			test e azione ostacoli frontali
   		*/
-		digitalWrite(ENB_L_SIDE_FRONT, enableFrontSensor);		// 
-		
+		digitalWrite(ENB_L_SIDE_FRONT, enableFrontSensor);		//
+
 		testOstacoli();
 		// verifica sensore IR anteriore, Low quando ostacolo
 		// se IR disabilitato non viene letto poichè a casusa del lidar
 		// anche se disabilitato ritorna un segnale.
-		
+
 		if (enableFrontSensor)	occlusoDavanti = !digitalRead(L_SIDE_FRONT) || lidarDistance<distOstacolo;
 		else					occlusoDavanti = lidarDistance<distOstacolo;
-			
-		
+
+
         if (occlusoDavanti && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
         {
             //motorSpeedRef = FERMO;
@@ -665,13 +667,13 @@ static long exeTime, tInit;
             risposta		= "ostacolo";
             sendAnswer2(port);
         }
-        
-	
+
+
 		/** statoRun
-		
-			il movimento è gestito da una macchina a stati. Lo stato iniziale è fermo. 
-		
-		
+
+			il movimento è gestito da una macchina a stati. Lo stato iniziale è fermo.
+
+
 			0: fermo
 			1: controllo sterzo da sensore dx e distanza automatico (non attivo)
 			1: controllo sterzo da sensore sx e distanza automatico (non attivo)
@@ -679,18 +681,18 @@ static long exeTime, tInit;
 			4: controllo distanza, sterzo da parametro da tetaRef vs teta odometria
 			5: rotazione sul posto con una ruota ferma
 			6: rotazione sul posto con ruote controrotanti
-			
+
 			99: comando arresto
 		*/
-			
+
 			// parte a 25 ms
 			if ((millis()-lastTime) > TEMPO_CONTROLLO){
 
 				exeTime = micros() - tInit;
 				//Serial.println(lidarDistance);
 				tInit = micros();
-								
-				lidarDistance = tfmini.getDistance();
+
+				lidarDistance = tfmini.getDistance()/divLidar;
 
 
 				lastTime = millis();
@@ -699,7 +701,7 @@ static long exeTime, tInit;
 				// ID_009 bussola
 
 				if (bussola) compass();
-				
+
 				if (modoGuida == 0)	tetaMisura = teta;			// ID_001
 				if (modoGuida == 1)	tetaMisura = tetaCompass;	// ID_009
 				if (modoGuida == 3)	tetaMisura = tetaCompass;	// ID_009
@@ -707,16 +709,16 @@ static long exeTime, tInit;
 					tetaCompass = 0;
 					modoGuida   = 1;
 				}
-					
 
-				
+
+
 				// controllo sterzo da lidar
 				// R3: PAN  10 muro su lato DX
 				// R1: PAN 170 muro su lato SX
 				// kp usato 0.5
 				// Se errore troppo alto andarci con S limitato
 				if ((statoRun == 1)||(statoRun == 3)){
-					
+
 					errore = float(distRef - lidarDistance);
 					// per come sono messi i motori inverto segno dell
 					// deltaErrore
@@ -724,34 +726,34 @@ static long exeTime, tInit;
 					erroreK_1   = errore;
 					//tauD = 100e-3;
 					//ts   = 25e-3
-					//0.7788008 ktD  = exp(-ts/tauD) 
+					//0.7788008 ktD  = exp(-ts/tauD)
 					DerActive = DerActive*0.7788008 + kd_guida*deltaErrore*0.2211992;
-					
+
 					if (statoRun == 1) {
-						raggiorSterzo =   kp_guida*errore  - DerActive;  
+						raggiorSterzo =   kp_guida*errore  - DerActive;
 					}
 					else{
-						raggiorSterzo =  -kp_guida*errore  + DerActive; 
+						raggiorSterzo =  -kp_guida*errore  + DerActive;
 					}
 					// errore +/- 0.5
 
-					
+
 					if (raggiorSterzo < -MAX_S) raggiorSterzo = -MAX_S;
 					if (raggiorSterzo >  MAX_S) raggiorSterzo =  MAX_S;
 				}
-				
+
 				if (statoRun == 2){
 					motorSpeedRef = motorSpeedValue;
 					direzione 	  = AVANTI;
 				}
 
-				// controllo sterzo da teta 
+				// controllo sterzo da teta
 				if (statoRun == 4){
-					
+
 					// regolatore PI
-					
+
 					errore = tetaRef - tetaMisura;
-					raggiorSterzo =   kpTeta*errore; 	
+					raggiorSterzo =   kpTeta*errore;
 					i_part += raggiorSterzo*kiTeta;
 
 					// anti windup
@@ -769,28 +771,28 @@ static long exeTime, tInit;
 					}
 					if (i_part>  0.5) i_part =  0.5;
 					if (i_part< -0.5) i_part = -0.5;
-					
+
 					raggiorSterzo += i_part;
-					
+
 					// errore +/- 0.5
-					
+
 					if (raggiorSterzo < -2.0) raggiorSterzo = -2.0;  	// ID_005
 					if (raggiorSterzo >  2.0) raggiorSterzo =  2.0;		// ID_005
 				}
 
-				
+
 				/** gestione raggiungimento angolo target
 					in questo caso il robot deve ruotare per orientarsi con l'angolo dato.
 					Questo vale per i modi 5 e 6.
-					
-				
-					All'approsimarsi della destinazione la velocità viene diminuita per raggiungere il target senza superarlo.				
+
+
+					All'approsimarsi della destinazione la velocità viene diminuita per raggiungere il target senza superarlo.
 
 				*/
 				if ((statoRun == 5)||(statoRun == 6)){
 
 					errore = tetaRef -tetaMisura;
-				
+
 					switch (SM_R5){
 						case 0:
 								if ( tetaMisura < tetaRef ) SM_R5 = 1;	// salita
@@ -802,21 +804,21 @@ static long exeTime, tInit;
 									motorSpeedRef = 0;
 								}
 							break;
-							
+
 						case 1:	// rampa salita
 								motorSpeedRef =  108.0;
 								direzione = AVANTI;
-								
+
 								// spazio di fermata 0.5*v*tf
-								// 
-				
+								//
+
 								if (errore < delta_teta*7.0){
 								// fermo
 									SM_R5 		= 3;
 									deltaS      = 10.8;
 								}
 							break;
-							
+
 						case 2:	// rampa discesa
 
 								motorSpeedRef =  108.0;
@@ -827,10 +829,10 @@ static long exeTime, tInit;
 									deltaS      = 10.8;
 								}
 							break;
-							
+
 						case 3:
 								motorSpeedRef -= deltaS;
-						
+
 								if (motorSpeedRef< 0.0){
 									SM_R5 		= 0;
 									statoRun    = 0;	// arresto senza rampa
@@ -838,18 +840,18 @@ static long exeTime, tInit;
 									motorSpeedRef = 0;
 								}
 							break;
-							
-					
+
+
 					}
 				}// SM_R5
 
-				
+
 				/** gestione raggiungimento distanza target
 					in questo caso il robot deve arrivare alla distanza impostata.
-					Questo vale per i modi (1, 3, 2, 4). 
+					Questo vale per i modi (1, 3, 2, 4).
 					Sono esclusi i 5 e 6 che ruotano il robot e sono gestiti nei modi 5 e 6 da una propria macchina a stati.
-				
-					All'approsimarsi della destinazione la velocità viene diminuita per raggiungere il target senza superarlo.				
+
+					All'approsimarsi della destinazione la velocità viene diminuita per raggiungere il target senza superarlo.
 
 				*/
 
@@ -857,7 +859,7 @@ static long exeTime, tInit;
 				if (((statoRun != 5)&&(statoRun != 6))&&(statoRun != 0)){
 					if ( distanza > odometro )	direzione = AVANTI;
 					else						direzione = INDIETRO;
-					
+
 						if ( abs(distanza - odometro) > E_APPROCCIO){
 							motorSpeedRef = motorSpeedValue;
 						}
@@ -875,7 +877,7 @@ static long exeTime, tInit;
 				}
 			}// fine parte temporizzata TEMPO_CONTROLLO ms
 
-			
+
 			/** questa parte genera le rampe sulla tensione del motore. Sia in accelerazione che decelerazione.
 			*   Viene fatta girare con un tempo piu' veloce per poter usare gradini di riferimento più piccoli.
 			*   All'arrivo a velocità zero la macchina a stati del movimento viene messa nello stato iniziale.
@@ -884,7 +886,7 @@ static long exeTime, tInit;
 				lastTimeFast = millis();
 
 				if (statoRun == 99) motorSpeedRef = 0;
-				
+
 				// rampa sulla velocita'
 				if (motorSpeedRef > motorSpeed)	motorSpeed += 2;
 				if (motorSpeedRef < motorSpeed)	motorSpeed -= 4;	// 15
@@ -895,14 +897,14 @@ static long exeTime, tInit;
 					statoRun   = 0;
 				}
 			}// fine temporizzata veloce
-			
+
 			differenziale(motorSpeed);
 
 	}
-	
-	
+
+
 	/**
-		modo di test. viene usato durante il debug dell'hw. viene configurato alla bisogna. 
+		modo di test. viene usato durante il debug dell'hw. viene configurato alla bisogna.
 		I comandi arrivano diretti dalla seriale e codificati comenecessario.
 	*/
     if (mode == TEST_MOTORE){
@@ -915,9 +917,9 @@ static long exeTime, tInit;
 				motorSpeedRef = Serial.parseInt();
 				// do it again:
 				direzione = Serial.parseInt();
-				
+
 				//PDURATION = Serial.parseInt();
-				
+
 				// look for the newline. That's the end of your
 				// sentence:
 				if (Serial.read() == '\n') {
@@ -929,7 +931,7 @@ static long exeTime, tInit;
 					Serial.print(',');
 					Serial.println(direzione);
 
-				}    
+				}
 			}
 
 			if (motorSpeedRef < 0){ // == INDIETRO){
@@ -940,25 +942,25 @@ static long exeTime, tInit;
 				driver.motorAForward(motorSpeedRef);
 				driver.motorBReverse(motorSpeedRef);
 			}
-			
+
 		}
 	}
-	
+
 }
 
 //------------------- fine main --------------------------------
 
-/** @brief odometri	
+/** @brief odometri
 
-	la misura della posizione viene fatta leggendo gli impulsi prodotti dagli encoder rotativi montati sull'albero delle ruote. 
+	la misura della posizione viene fatta leggendo gli impulsi prodotti dagli encoder rotativi montati sull'albero delle ruote.
 	Gli encoder sono dischi con delle fessure regolari. Queste interrompono a tartti il fascio luminoso sul sensore optoelettronico.
 	Ogni transizione genera un interrupt su Arduino.
 	Contando il numero degli impulsi letti si misura lo spazio percorso.
 	La direzione dipende dalla tensione applicata al motore. Gli impulsi vengono sommati in un caso e sottratti nell'altro.
-	
+
 	Il flag Vx_zero indica queando il motore è fermo. In questo caso si evitano i conteggi per evitarne di falsi.
 	Se gli impulsi giugono troppo velocemente vengono considerati errori.
-	
+
 	La routine incremmenta contatori di interi per essere veloce.
 */
 void odometroDxMisuraHW(void){
@@ -966,14 +968,14 @@ unsigned long pulseTime;
 
 	if ((millis() - pulseTime) < MIN_TIME_TRA_PULSE) return;
 	pulseTime = millis();
-		
+
 	//Serial.println("dx");
 	digitalWrite(ledPin, !digitalRead(ledPin));
 
 	if (VA_zero) return;		// se tensione zero non conta
-  
+
 	if  (statoRun == 0) 				 return;
-	
+
 	if (dirVA == 1)  odometroDxCnt ++;		// ID_005
 	else             odometroDxCnt --;
 }
@@ -997,28 +999,28 @@ unsigned long pulseTime;
 	else             odometroSxCnt --;
 }
 
-	
 
-/** 
+
+/**
 	@brief  sterzo con differenziale. Per curvare la velocità relativa delle due ruote viene modificata. Con le velocità uguali proseguo diritto, con una maggiore dell'altra curvo.
-			
+
 			raggiorSterzo (variabile globale) indica lo scorrimento che applichiamo alle ruote. E' un numero tra 0 e 2.
-			
+
 			ponendo s = raggiorSterzo abbiamo che le velocita' alle ruote valgono:
-			
+
 			VA = motorSpeed*(1-s)
-			
+
 			VB = motorSpeed*(1+s)
-	
+
 			In funzione di StatoRun si hanno diversi modi operativi
-			
+
 			StatoRun  .. : differenziale in funzione di raggiorSterzo
-			
+
 			StatoRun == 5: curva con una ruota ferma
-			
+
 			StatoRun == 6: curva con ruote controrotanti
-			
-	
+
+
     @param  motorSpeed. Il valore a cui limitare la velocita' massima applicata ai motori.
 
 */
@@ -1030,7 +1032,7 @@ static float Vlimite;
 	if ((statoRun != 5)&&(statoRun != 6)){
 
 		rs = raggiorSterzo;
-		
+
 		/* quando viene fatta una curva con una ruota bloccata l'altra ruota va a 255.
 		   partendo da fermo ci può essere slittamento.
 		   In questo caso si limita la velocità della ruota che marcia.
@@ -1044,13 +1046,13 @@ static float Vlimite;
 			rs = -MAX_STERZO;
 			Vlimite = motorSpeed;
 		}
-	
+
 		VA = motorSpeed*(1.0+rs);
 		VB = motorSpeed*(1.0-rs);
-		
+
 		if (VA >  Vlimite) VA =  Vlimite;
 		if (VA < -Vlimite) VA = -Vlimite;
-		
+
 		if (VB >  Vlimite) VB =  Vlimite;
 		if (VB < -Vlimite) VB = -Vlimite;
 
@@ -1060,7 +1062,7 @@ static float Vlimite;
 				driver.motorAReverse(VA);
 			}
 			else{
-				dirVA =  1;		
+				dirVA =  1;
 				driver.motorAForward(VA);
 			}
 			if (VB >= 0 ){
@@ -1068,7 +1070,7 @@ static float Vlimite;
 				driver.motorBReverse(VB);
 			}
 			else{
-				dirVB =  1;		
+				dirVB =  1;
 				driver.motorBForward(VB);
 			}
 		}
@@ -1079,7 +1081,7 @@ static float Vlimite;
 				driver.motorAForward(VA);
 			}
 			else{
-				dirVA = -1;		
+				dirVA = -1;
 				driver.motorAReverse(VA);
 			}
 			if (VB >= 0 ){
@@ -1087,14 +1089,14 @@ static float Vlimite;
 				driver.motorBForward(VB);
 			}
 			else{
-				dirVB = -1;		
+				dirVB = -1;
 				driver.motorBReverse(VB);
 			}
 		}
 	}
-	else 
+	else
 		if (statoRun == 5){// con una ruota ferma ruota su se stesso
-		  
+
 			if (direzione == AVANTI){
 				VB = 0;
 				VA = motorSpeed;
@@ -1131,8 +1133,8 @@ static float Vlimite;
 				driver.motorAReverse(motorSpeed);
 			}
 		}
-	
-		// informazione per lettura encoder 
+
+		// informazione per lettura encoder
 	if (VA == 0) 	VA_zero = 1;
 	else			VA_zero = 0;
 	if (VB == 0) 	VB_zero = 1;
@@ -1141,7 +1143,7 @@ static float Vlimite;
 }
 
 /**
-	@brief 
+	@brief
 */
 void updatePosition(void){
 
@@ -1157,27 +1159,27 @@ static int  counter = 0;
 	// valore complessivo: usato temporaneamente
 	odometro = (odometroDxCnt + odometroSxCnt)*GIRO_RUOTA;
 
-	// calcolo evoluzione nel periodo 
-	
+	// calcolo evoluzione nel periodo
+
 	// congelo le letture per lavorare su valori coerenti
-	
+
 	noInterrupts();
 		letturaDx= odometroDxCnt;
 		letturaSx= odometroSxCnt;
 	interrupts();
-	
+
 	dDxCnt   = letturaDx - DxCnt_k_1;				// delta sx e dx in count
 	dSxCnt   = letturaSx - SxCnt_k_1;
-	
+
 	// esporto velocità encoder
 	spdDxCnt = dDxCnt;
 	spdSxCnt = dSxCnt;
-	
+
 	deltaC   = (dDxCnt + dSxCnt)*GIRO_RUOTA;// avanzamento del centro nel periodo in mm
-	
+
 	DxCnt_k_1= letturaDx;							// memoria per prossimo ciclo
 	SxCnt_k_1= letturaSx;
-	
+
 	// integro teta
 	// delta_teta è la velocità angolare
 	delta_teta =((float)dDxCnt*GIRO_RUOTA_DX - (float)dSxCnt*GIRO_RUOTA_SX)*2.0/BASELINE;
@@ -1196,9 +1198,9 @@ static int  counter = 0;
 
 	/* Get a new sensor event */
 	counter ++;
-	
+
 	if (bussola) mag.getEvent(&event);
-	
+
 	// monitor dati
 	if (monitorDati && (counter >=4) ){
 		counter = 0;
@@ -1246,33 +1248,33 @@ static int  counter = 0;
   }
 
 void richieste(void)
-{       
+{
 static float x, y;
         Serial.println("richiesta");
         Serial.println(inputString);
         switch (char(inputString[1])) {
-					case 'a': 
+					case 'a':
 							risposta = "a: " + String(xpos);
 						break;
-		
-					case 'b': 
+
+					case 'b':
 							risposta = "b: " + String(ypos);
 						break;
-		
-					case 'c': 
+
+					case 'c':
 							risposta = "c: " + String(teta);
 						break;
-		
 
-					case 'd': 
+
+					case 'd':
 							risposta = "d: " + String(odometro);
 						break;
-		
-					case 'e': 
+
+					case 'e':
 							risposta = "e: " + String(errore);
 						break;
-								
-					case 'f': 
+
+					case 'f':
 							risposta = "f: ";		// ID_009
 							risposta += event.magnetic.x;
 							risposta += ";";
@@ -1280,44 +1282,44 @@ static float x, y;
 							risposta += ";";
 							risposta += event.magnetic.z;
 						break;
-								
-					case 'g': 
+
+					case 'g':
 							risposta = "g: " + String(tetaCompass);
 						break;
 
-					case 'h': 
+					case 'h':
 							risposta = "h-V FW: " + String(V_FW_ATMEGA);
 						break;
-						
-					case 'p': 
+
+					case 'p':
 							if (monitorDati) return;
 							risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) + ";" + String(statoRun) + ";" + String(raggiorSterzo) + ";" + String(errore) ;
-						break;  
+						break;
 
-					case 'q': 
+					case 'q':
 							// eseguo una scansione
 							int range_ang1;
 							int range_ang2;
 							int passo_ang;
-							
-							// ricevo una stringa da sezionare 
+
+							// ricevo una stringa da sezionare
 							range_ang1 = String(inputString.substring(2, 5)).toInt();
 							range_ang2 = String(inputString.substring(5, 8)).toInt();
 							passo_ang  = String(inputString.substring(8,10)).toInt();
-							
+
 							// limito il movimento causa limiti servo
 							if (range_ang1 > 170)	range_ang1 = 170;
 							if (range_ang2 > 170) 	range_ang2 = 170;
 							if (range_ang1 < 10)	range_ang1 = 10;
 							if (range_ang2 < 10)	range_ang2 = 10;
-							
+
 							// gestisce scan in accordo alla direzione
 							if ( range_ang1 > range_ang2){
-								
+
 								passo_ang=passo_ang*-1;
-	
+
 								for (int ang=range_ang1; ang>=range_ang2; ang=ang+passo_ang)
-								{          
+								{
 									//settare angolo pan
 									servoPan.write ( ang);
 									delay(200);
@@ -1326,130 +1328,130 @@ static float x, y;
 								}
 							}
 							else{
-								for (int ang=range_ang1; ang<=range_ang2; ang=ang+passo_ang){           
+								for (int ang=range_ang1; ang<=range_ang2; ang=ang+passo_ang){
 									//settare angolo pan
 									servoPan.write ( ang);
 									delay(200);
 									risposta = lidarMisuraAmb(10,ang) ;
 									sendAnswer2(port);
-								} 
+								}
 							}
 							risposta = "echf";
 							sendAnswer2(port);
 						break;
 
-					case 'r': 
+					case 'r':
 							risposta = "r: " + String(statoRun)+";"+String(inputString.substring(2)); // ID_008
 						break;
 
-					case 's': 
+					case 's':
 							risposta = "s: " + String(raggiorSterzo, 3);
 						break;
 
-					case 'v': 
+					case 'v':
 							risposta = "v: " + String(motorSpeed);
 						break;
 
-					case 'w': 
+					case 'w':
 							risposta = "w: " + String(VB);
 						break;
-						
-					case 'z': 
+
+					case 'z':
 							risposta = "z: " + String(VA);
 						break;
 
-					case '2': 
+					case '2':
 							risposta = "Sx: " + String(odometroSxCnt);
 						break;
 
-					case '3': 
+					case '3':
 							risposta = "Dx: " + String(odometroDxCnt);
 						break;
         }
-		
+
 		sendAnswer2(port);
 
-  
+
   }
 
-  
-/** @brief comandi:	i comandi assegnano valori o eseguono funzioni. iniziano con un 3 e hanno la lettera maiuscola, sono seguiti da uno o più numeri. 
+
+/** @brief comandi:	i comandi assegnano valori o eseguono funzioni. iniziano con un 3 e hanno la lettera maiuscola, sono seguiti da uno o più numeri.
 			non ci sono spazi di separazione.
 			i numeri, se non diversamente indicato, sono floating point, la virgola è data col '.', es 3.14
-			
+
 	@param comando
-	
+
 		Axxx: Alfa. assegna Alfa, la direzione del robot. xxx è l'angolo in radianti, es 3.14. La direzione zero è definita all'accensione del robot. E' la direzione in avanti. Coincide con l'asse x.
 				Alfa è positivo in senso antiorario.
 
 		Bx: 	enableFrontSensor. 1 Enable, 0 disable
-			
+
 		Cxxx: assegna "raggiorSterzo" in [m]. La variabile è usata nella movimento R2, stabilisce il raggio della circonferenza su cui ruota il robot.
-		
-		Dxxx: Distance. La distanza che viene percorsa nel prossimo Run espressa in [mm]. La distanza è sempre incrementale. 
-		
-		Ex: EEprom.  Esegue operazioni su dei parametri di taratura. Vedi procedura DataEEprom. 
-			
-			E0 SCRIVI i parametri in E2prom, 			
-			E1 LEGGI i parametri in E2prom, 			
-			E2 rispristina in valori di DEFAULT, 			
-			E3 mostra i parametri CORRENTI, 			
-			E4 carica i valori di DEFAULT per il modello ARI02, 			
-			E5 carica i valori di DEFAULT per il modello ARI03, 
-			
-		Fnxxx: imposta dei parametri del robot. "n" indica quale parametro, "xxx" è il valore. 
-		
-			F0xx ED				
-			F1xx ED_BASE			
+
+		Dxxx: Distance. La distanza che viene percorsa nel prossimo Run espressa in [mm]. La distanza è sempre incrementale.
+
+		Ex: EEprom.  Esegue operazioni su dei parametri di taratura. Vedi procedura DataEEprom.
+
+			E0 SCRIVI i parametri in E2prom,
+			E1 LEGGI i parametri in E2prom,
+			E2 rispristina in valori di DEFAULT,
+			E3 mostra i parametri CORRENTI,
+			E4 carica i valori di DEFAULT per il modello ARI02,
+			E5 carica i valori di DEFAULT per il modello ARI03,
+
+		Fnxxx: imposta dei parametri del robot. "n" indica quale parametro, "xxx" è il valore.
+
+			F0xx ED
+			F1xx ED_BASE
 			F2xx BASELINE		mm
 			F3xx GIRO_RUOTA		mm	= sviluppo ruota[mm]/(4*ppr)
-			
+
 			N.B. questi valori vanno attivati con un 3E3
-			
+
 		Gxxx:	"Guide Mode". definisce il modo di guida nel run "R4". Il teta di feedback, tetaMisura, può provenire dall'odometria, dalla bussola, o altri mix possibili.
 				Nel codice sotto teta è l'angolo ricavato dagli encoder.
-				
+
 				Il modo zero si affida alle misure fatte dagli encoder.
-				Il modo 1 e 3 ricavano il teta direttamente dalla bussola. Nel modo 3 anche le posizioni x e y 
+				Il modo 1 e 3 ricavano il teta direttamente dalla bussola. Nel modo 3 anche le posizioni x e y
 				sono calcolate dal teta della bussola.
 				con il modo 2 è possibile imporre l'angolo corrente come angolo zero. Altrimenti la direzione è
 				assoluta come determinata dalla bussola.
-				
-				if (modoGuida == 0)	tetaMisura = teta;			// ID_001				
-				if (modoGuida == 1)	tetaMisura = tetaCompass;	// ID_009				
-				if (modoGuida == 3)	tetaMisura = tetaCompass;	// ID_009				
-				if (modoGuida == 2) {					
-					tetaCompass = 0;	// definisco la direzione corrente come zero.					
+
+				if (modoGuida == 0)	tetaMisura = teta;			// ID_001
+				if (modoGuida == 1)	tetaMisura = tetaCompass;	// ID_009
+				if (modoGuida == 3)	tetaMisura = tetaCompass;	// ID_009
+				if (modoGuida == 2) {
+					tetaCompass = 0;	// definisco la direzione corrente come zero.
 					modoGuida   = 1;
 					}
-					
+
 				in updatePosition integro posizioni in funzione del modoGuida attivo
-				
-				if (modoGuida == 3) {					
-					xpos    +=  deltaC*cos(tetaCompass);					
-					ypos    +=  deltaC*sin(tetaCompass);					
+
+				if (modoGuida == 3) {
+					xpos    +=  deltaC*cos(tetaCompass);
+					ypos    +=  deltaC*sin(tetaCompass);
 				}
-				else{					
-					xpos    +=  deltaC*cos(teta);					
-					ypos    +=  deltaC*sin(teta);					
+				else{
+					xpos    +=  deltaC*cos(teta);
+					ypos    +=  deltaC*sin(teta);
 				}
-				
+
 		Knxx: 	assegna i guadagni
 				K0 kpTeta   il guadagno proporzionale kp usato nel modo Run 4
 				K1 kiTeta
 				K2 kp_guida il guadagno proporzionale kp usato nel modo Run 1 e 3 (sensore di distanza laterale)
 				K3 kd_guida il guadagno derivativo    kd usato nel modo Run 1 e 3 (sensore di distanza laterale)
 
-		H0:	 	Homing, assegna lo posizione corrente (x, y, teta) = (0, 0, 0) 
-		
+		H0:	 	Homing, assegna lo posizione corrente (x, y, teta) = (0, 0, 0)
+
 		Ixxx; 	Integral part. assegna il guadagno della parte integrale kiTeta usato nel modo Run 4.
 
 		Lx: 	Led. puntatore a Led acceso, x=1, o spento x=0.
-		
+
 		Mx: 	Monitor. Attiva, 1, o disattiva, 0, l'invio continuo di misure da parte del robot.
 				le msiure sono inviate nella routine "updatePosition" ogni 100 ms.
 				La stringa ha l'header "mon:"
-				
+
 				if (monitorDati && (counter >=4) ){
 				counter = 0;
 				risposta  = "mon;";
@@ -1476,69 +1478,69 @@ static float x, y;
 				risposta += ";";
 				sendAnswer2(port);
 			}
-	
+
 		Nnxxx:	assegna i coefficienti di correzione della bussola.
-				N0: ox			
-				N1: oy			
+				N0: ox
+				N1: oy
 				N2: ky
-				
-		Onxx: 	
+
+		Onxx:
 				O0: distRef      [cm]. riferimento per guida a distanza fissa nei modi R1 e R2
 				O0: distOstacolo [cm]. distanza minima sotto la quale ARI si arresta
-				
+
 		Pxxx: 	orienta il servo PAN della testa. xxx è in gradi, 90° guarda in avanti, 0 a sinistra e 180 a destra.
 				in alcuni casi, a seconda del servo usato, è bene limitare l'escursione ad esempio tra 10 e 170°.
-				
+
 		Rx:		Run. Definisce in che modo effettuare la corsa "Run". Il run è definito con un obbiettivo (target).
 				Il raggiungimento del target termina il run.
-				
+
 				x=4: R4. Il robot si muove sino a percorrere la distanza impostata con "D" nella direzione alfa impostata con "A".
 				x=5: R5. Il robot si muove sino a orientarsi nella direzione alfa impostata con "A". La rotazione fa perno su una ruota che rimane ferma.
 				x=6: R6. Il robot si muove sino a orientarsi nella direzione alfa impostata con "A". La rotazione avviene con perno al centro del robot con ruote controrotanti.
 				x=2: R2. Il robot effettua un percorso circolare con raggio pari al parametro "C". Il raggiorSterzo può anche essere
 						 imposto direttamente con il comando "S". In questo caso sarà lo scorrimento tra le ruote dx e sx.
-		
+
 				R1 e 2. i modi 1 e 3 fanno viaggiare il robot a una distanza fissa dalla parete laterale. la misura è fatta orinetando il LIDAR.
 						 i due modi sono in test.
 
 				x=99: provoca l'arresto del movimento
-				
+
 				Il movimento si arresta quando il lidar vede un ostacolo troppo vicino.
-				
+
 				if (lidardist<50 && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
 					{
-						statoRun    	= 99;  	// senza rampa					
-						motorSpeed  	= 0;  	// annullo rampa					
-						motorSpeedRef 	= 0;					
-						risposta		= "ostacolo";					
-						sendAnswer2(port);					
+						statoRun    	= 99;  	// senza rampa
+						motorSpeed  	= 0;  	// annullo rampa
+						motorSpeedRef 	= 0;
+						risposta		= "ostacolo";
+						sendAnswer2(port);
 					}
-		
-		Sxxx:	Scorrimento. Imposta direttamente la varibile "raggiDiSterzo". è un numero tra -1 e 1. 
+
+		Sxxx:	Scorrimento. Imposta direttamente la varibile "raggiDiSterzo". è un numero tra -1 e 1.
 				Zero significa scorrimento nullo, cioè le due ruote hanno la stessa velocità comandata.
 				vedi procedura "differenziale"
-				
+
 				ponendo s = raggiorSterzo abbiamo che le velocita' alle ruote valgono:
-				
-					VA = motorSpeed*(1-s)			
-					VB = motorSpeed*(1+s)		
-		
+
+					VA = motorSpeed*(1-s)
+					VB = motorSpeed*(1+s)
+
 		Txxx: 	orienta il servo TILT della testa. xxx è in gradi, 90° guarda in avanti, 0 a sinistra e 180 a destra.
 				in alcuni casi, a seconda del servo usato, è bene limitare l'escursione ad esempio tra 10 e 170°.
-		
-		Vxxx:	Velocità. Definisce la velocità del robot. é il valore assegnato al PWM.	
+
+		Vxxx:	Velocità. Definisce la velocità del robot. é il valore assegnato al PWM.
 
 		Zxxx:   definisce MAX_S. è il limite dello scorrimento (positivo e negativo) applicabile dal controllo.
-	
-	
-*/  
+
+
+*/
 void comandi()
-{         
+{
 static float x, y;
 
 
 //          x==(inputString.substring(2)).toInt();
-		//with only one parameter looks for a given substring from the position given to the end of the string. 
+		//with only one parameter looks for a given substring from the position given to the end of the string.
 		x = (inputString.substring(2)).toFloat();
 		/*
 		Serial.print  ("comandi- ch[1]: ");
@@ -1548,27 +1550,27 @@ static float x, y;
 		Serial.print  (",x: ");
 		Serial.println(x);
 		*/
-		
+
 		switch (char(inputString[1])) {
-			case 'A': 
+			case 'A':
 					tetaRef  = x*3.14/180.0;
 					risposta = "A: " + String( tetaRef, 3);
 				break;
 
-			case 'B': 
+			case 'B':
 					enableFrontSensor = x;
 					risposta = "B: " + String(enableFrontSensor);
 				break;
 
-			case 'C': 
-					if (abs(x) < 1000) 
+			case 'C':
+					if (abs(x) < 1000)
 						raggiorSterzo = LAGHEZZA_A_MEZZI/x;
 					else
 						raggiorSterzo = 0.0;
 					risposta = "S: " + String(raggiorSterzo, 3);
 				break;
 
-			case 'D': 
+			case 'D':
 					distanza += x;
 					risposta = "D: " + String( distanza, 3);
 				break;
@@ -1580,7 +1582,7 @@ static float x, y;
 						risposta = "E: SCRIVI";
 					}
 					else if (x == 1.0){
-						DataEEprom(LEGGI); 
+						DataEEprom(LEGGI);
 						risposta = "E: LEGGI";
 					}
 					else if (x == 2.0){
@@ -1601,7 +1603,7 @@ static float x, y;
 					}
 					else  risposta = "E0: SCRIVI, E1 LEGGI, E2 DEFAULT, E3 CORRENTI, E4 DEFAULT ARI02, E5 DEFAULT ARI03";
 				break;
-			
+
 			/* ID_010
 				la seconda cifra è un numero cosi
 				che l'assegnamento di x all'inizio vada sempre bene
@@ -1610,24 +1612,24 @@ static float x, y;
 				F1xx ED_BASE
 				F2xx BASELINE
 				F3xx GIRO_RUOTA
-				
+
 			*/
-			case 'F': 
+			case 'F':
 				x = (inputString.substring(3)).toFloat();
 				switch (char(inputString[2])) {
-					case '0': 
+					case '0':
 						ED = x;
 						risposta = "F0_ED: " + String(ED, 6);
 						break;
-					case '1': 
+					case '1':
 						ED_BASE = x;
 						risposta = "F1_ED_BASE: " + String(ED_BASE, 6);
 						break;
-					case '2': 
+					case '2':
 						BASELINE = x;
 						risposta = "F2_BASELINE: " + String(BASELINE, 6);
 						break;
-					case '3': 
+					case '3':
 						GIRO_RUOTA = x;
 						risposta = "F3_GIRORUOTA: " + String(GIRO_RUOTA, 6);
 						break;
@@ -1644,43 +1646,43 @@ static float x, y;
 			// K1 kiTeta
 			// K2 kp_guida
 			// K3 kd_guida
-			case 'K': 
+			case 'K':
 				x = (inputString.substring(3)).toFloat();
 				switch (char(inputString[2])) {
-					case '4': 
+					case '4':
 //						kp = x;
 //						risposta = "kp: " + String(kp, 6);
 						break;
-					case '0': 
+					case '0':
 						kpTeta = x;
 						risposta = "kpTeta: " + String(kpTeta, 6);
 						break;
-					case '1': 
+					case '1':
 						kiTeta = x;
 						risposta = "kiTeta: " + String(kiTeta, 6);
 						break;
-					case '2': 
+					case '2':
 						kp_guida = x;
 						risposta = "kp_guida: " + String(kp_guida, 6);
 						break;
-					case '3':	
+					case '3':
 						kd_guida = x;
 						risposta = "kd_guida: " + String(kd_guida, 6);
 						break;
 				}
 				break;
 
-			case 'H': 
+			case 'H':
 				xpos = ypos = teta = 0.0;
 				risposta = "H: ";
 			break;
 
-			case 'I': 
+			case 'I':
 					kiTeta = x;
 					risposta = "I: " + String(kiTeta, 3);
 				break;
 
-			case 'L': 
+			case 'L':
 					Serial.println(x);
 					if (x == 0.0){
 						Serial.println("L0");
@@ -1697,78 +1699,78 @@ static float x, y;
 					risposta = "L: " + String(x);
 				break;
 
-			case 'M': 
+			case 'M':
 					monitorDati = x;
 					risposta = "M: " + String(monitorDati);
 				break;
 
-			case 'N': 
+			case 'N':
 				x = (inputString.substring(3)).toFloat();
 				switch (char(inputString[2])) {
-					case '0': 
+					case '0':
 						ox = x;
 						risposta = "N0: " + String(ox, 6);
 						break;
-					case '1': 
+					case '1':
 						oy = x;
 						risposta = "N1: " + String(oy, 6);
 						break;
-					case '2': 
+					case '2':
 						ky = x;
 						risposta = "N2: " + String(ky, 6);
 						break;
 				}
 				break;
 
-			case 'O': 
+			case 'O':
 				x = (inputString.substring(3)).toFloat();
 				switch (char(inputString[2])) {
-					case '0': 
+					case '0':
 							distRef  =  (uint16_t)int(x);
 							risposta = "distRef: " + String(distRef);
 						break;
-					case '1': 
+					case '1':
 							distOstacolo  =  (uint16_t)int(x);
 							risposta = "distOstacolo: " + String(distOstacolo);
 						break;
 				}
 				break;
-				
-			case 'P': 
+
+			case 'P':
 					panAngle = x;
 					risposta = "P: " + String(panAngle);
 				break;
 
-			case 'R': 
+			case 'R':
 					statoRun = x;
 					risposta = "R: " + String(statoRun);
 				break;
 
-			case 'S': 
+			case 'S':
 					raggiorSterzo = x;
 					risposta = "S: " + String( raggiorSterzo, 3);
 				break;
 
-			case 'T': 
+			case 'T':
 					tiltAngle = 180 - x;		// servomotore girato
 					risposta = "T: " + String(x);
 				break;
 
-			case 'V': 
+			case 'V':
 					motorSpeedValue = x;
 					risposta = "V: " + String(motorSpeedValue);
 				break;
 
-			case 'Z': 
+			case 'Z':
 					MAX_S = x;
 					risposta = "Z: " + String(MAX_S, 3);
 				break;
 
-			case '1': 
+			case '1':
 					VA = x;
 					risposta = "1: " + String(x, 3);
 				break;
-		
+
         default:
             risposta="mica capito";
         }
@@ -1776,11 +1778,11 @@ static float x, y;
   }
 
 /*!
-    @brief  quando arriva una stringa da ESP la processa. Il protocollo usato è in ASCII permette di inviare comandi o richieste.	
-			Il primo carattere indica se richiesta (1) o comando (3). 
-			
+    @brief  quando arriva una stringa da ESP la processa. Il protocollo usato è in ASCII permette di inviare comandi o richieste.
+			Il primo carattere indica se richiesta (1) o comando (3).
+
 			I caratteri successivi vengono passati alle routine dedicate che eseguono il comando e preparano la stringa "risposta".
-			
+
 			questa viene ritornata dalla funzione sendAnswer2
 */
 
@@ -1802,10 +1804,10 @@ static int inByte;
 		  default:
 			risposta="mica capito";
 			sendAnswer2(port);		// l'argomento dovrebbe essere la porta su cui rispondere
-		
+
 		}
-	  
-	  // fine comandi 
+
+	  // fine comandi
 	  inputString="";
 	}
 
@@ -1815,40 +1817,40 @@ static int inByte;
 /*!
     @brief  riceve i caratteri dalla seriale dell'ESP. Il char '!' è l'inizio stringa, il '?' è il terminatore della stringa.
 	il terminatore della stringa è ?
-	
+
 	All'arrivo dello start la stringa pulita e inizia l'accumolo dei caratteri
 
 	All'arrivo del terminatore la stringa viene resa disponibile in "inputString"
-	
+
 	! *flush*
-	
+
 	? *terminatore*
-	
-	
+
+
 	N.B. il codice su esp oltre a dispacciare i pacchetti giunti dal WiFi verso Arduino effettuata anche un filtraggio e una generazione di richieste.
 	filtraggio: I pacchetti che iniziano !> sono destinati all'esp e sono quindi trattati sull'esp stesso.
 	generazione di richieste: a tempo l'esp richiede a Arduino delle informazioni che poi invia al client.
-	
+
 	per dettagli su questa parte vedi codice esp..
-	
+
 */
-void rSeriale(void)	
+void rSeriale(void)
 {
 static unsigned long time, cmdTime;
 static char c;
 static int numero = 0;
 	port = 0;
 	if (ESPserial.available() ==0) return;
-	
-	c = (char)ESPserial.read(); 
+
+	c = (char)ESPserial.read();
 	//Serial.write(c);
-	
+
 	// arrivano e non so da dove
     if (c == '\n' || c == '\r')		return;
-	
+
 
 	numero ++;
-	
+
     if (c=='!')		// flush stringa
     {
   		inputStringTmp = "";
@@ -1872,23 +1874,23 @@ static int numero = 0;
 
 
 /*!
-    @brief  gestisce dei valori sulle E2prom. I vengono letti e scritti nello stesso ordine. La procedura gestisce anche il valore di default. 
+    @brief  gestisce dei valori sulle E2prom. I vengono letti e scritti nello stesso ordine. La procedura gestisce anche il valore di default.
 		    letti i valori si procede ad aggiornare i parametri dipendenti dai valori assegnati.
 			Questa procedura viene chiamata al termine dell' startUp con comando LEGGI. Vengono quindi attivati i parametri salvati in EEprom.
 
-	
+
 	@param comando
-	
+
 		i comandi sono:
-		
+
 		SCRIVI 	0
-		
+
 		LEGGI 	1
-		
+
 		DEFAULT 2
-		
+
 		ATTIVA  3 (attiva e ricalcola i valori GIRO_RUOTA DX, SX etc
-	
+
 		temporaneamente i valori 4 e 5 caricano dei valori di default calibrati su due macchine. 4 ARI_02, 5 ARI_03
 
 */
@@ -1916,10 +1918,10 @@ char endList = 0;
 int  i = 0;
 
 	while (endList == 0){
-	
+
 		switch (i) {
-		
-			case 0:	// 
+
+			case 0:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, ED);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, ED);
 					if (comando == DEFAULT)			ED = 1.0;
@@ -1927,99 +1929,99 @@ int  i = 0;
 						eeAddress += sizeof(float); //Move address to the next byte after float 'f'.
 				break;
 
-			case 1:	// 
+			case 1:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, ED_BASE);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, ED_BASE);
 					if (comando == DEFAULT)			ED_BASE = 1.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
 
-			case 2:	// 
+			case 2:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, BASELINE);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, BASELINE);
-					if (comando == DEFAULT)			BASELINE = 130.0; 
+					if (comando == DEFAULT)			BASELINE = 130.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
 
-			case 3:	// 
+			case 3:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, GIRO_RUOTA);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, GIRO_RUOTA);
 					if (comando == DEFAULT)			GIRO_RUOTA = 2.728;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 4:	// 
+
+			case 4:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kpTeta);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kpTeta);
 					if (comando == DEFAULT)			kpTeta = 8.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
 
-			case 5:	// 
+			case 5:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, ox);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, ox);
 					if (comando == DEFAULT)			ox = 0.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 6:	// 
+
+			case 6:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, oy);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, oy);
 					if (comando == DEFAULT)			oy = 0.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 7:	// 
+
+			case 7:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, ky);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, ky);
 					if (comando == DEFAULT)			ky = 1.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 8:	// 
+
+			case 8:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kiTeta);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kiTeta);
 					if (comando == DEFAULT)			ky = 0.02;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 9:	// 
+
+			case 9:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kp_guida);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kp_guida);
 					if (comando == DEFAULT)			ky = 0.5;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 10:	// 
+
+			case 10:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kd_guida);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kd_guida);
 					if (comando == DEFAULT)			ky = 10.0;
 
-						eeAddress += sizeof(float); 
+						eeAddress += sizeof(float);
 				break;
-				
-			case 11:	// 
+
+			case 11:	//
 					endList = 1;
 				break;
-				
+
 
 		}
-	
-		i++;	
+
+		i++;
 	}
-	
+
 	// aggiornamento parametri dipendenti
-	
-	
+
+
 	// valori default ARI 02
 	if(comando == 4){
 		GIRO_RUOTA	= 2.728;
@@ -2027,7 +2029,7 @@ int  i = 0;
 		ED			= 0.99347735;
 		BASELINE    = 129.826;
 	}
-	
+
 	// valori default ARI 03
 	if(comando == 5){
 		GIRO_RUOTA	= 1.131;
@@ -2035,18 +2037,18 @@ int  i = 0;
 		ED			= 0.95;
 		BASELINE 	= 130.0;
 	}
-	
+
 	GIRO_RUOTA_SX 	= GIRO_RUOTA*2.0/(1.0 +      ED*ED_BASE );
 	GIRO_RUOTA_DX 	= GIRO_RUOTA*2.0/(1.0 + 1.0/(ED*ED_BASE));
-	
+
 	LAGHEZZA_A_MEZZI= BASELINE/2000.0;
 	printDatiCalibrazione();
-	
+
 }
 
 
 void printDatiCalibrazione(void){
-	
+
 	risposta  = "ED:      " + String(ED					, 6) + '\n';
 	risposta += "ED_BASE: " + String(ED_BASE			, 6)  + '\n';
 	risposta += "BASELINE " + String(BASELINE			, 6)  + '\n';
@@ -2060,19 +2062,19 @@ void printDatiCalibrazione(void){
 	risposta += "kp_guida: " + String(kp_guida) + '\n';
 	risposta += "kd_guida: " + String(kd_guida) + '\n';
 	risposta += "ox: " + String(ox) + '\n';
-	risposta += "oy: " + String(oy) + '\n'; 
+	risposta += "oy: " + String(oy) + '\n';
 	risposta += "ky: " + String(ky) + '\n';
 }
 
 
 /** @brief riporta al controller la distanza letta dal lidar, la risposta ha formato "mis;" + distanza in cm".
-	aggiorna anche la il valore "lidardist" ogni 250 ms. 
+	aggiorna anche la il valore "lidardist" ogni 250 ms.
 
 */
 void testOstacoli(){
 static int i;
 	if (monitorDati) return;
-	
+
 	// ritorna dato a tempo al client
 	if ((millis()-timeLidar) > 1000){
 		timeLidar  = millis();
@@ -2088,27 +2090,27 @@ String lidar()
 {
 
     // Take one TF Mini distance measurement
-     uint16_t dist = tfmini.getDistance();
+     uint16_t dist = tfmini.getDistance()/divLidar;
 //     dist = tfmini.getDistance();
 //     dist = tfmini.getDistance();
 //     dist = tfmini.getDistance();
      uint16_t strength = tfmini.getRecentSignalStrength();
      //Serial.print("forza");
     //Serial.println(strength);
-    return String(dist); 
-    
+    return String(dist);
+
 }
 
 /** @brief legge il lidar e prepara la stringa di risposta.
 
 	inizializza la stringa di risposta come "echo-"+String(ang)+"-";
-	
-	effettua dapprima 10 letture a vuoto, 
-	
+
+	effettua dapprima 10 letture a vuoto,
+
 	appende "numeroMisure" misure alla risposta ognuna separata da "-"
 
-	
-	@param numeroMisure su cui viene 
+
+	@param numeroMisure su cui viene
 	@param ang
 */
 String lidarMisuraAmb(int numeroMisure,int ang ){
@@ -2163,7 +2165,7 @@ static String dato;
   dato += ";";
   dato += "uT";
   /*
-  Serial.print("X;Y;Z;"); 
+  Serial.print("X;Y;Z;");
   Serial.print(event.magnetic.x); Serial.print(";");
   Serial.print(event.magnetic.y); Serial.print(";");
   Serial.print(event.magnetic.z); Serial.print(";");
@@ -2180,29 +2182,29 @@ static String dato;
 
 /*!
     @brief  Gets the most recent sensor values and transform in angle.
-	
+
             This function reads only x and y magnetometer values. The coefficients for correction are applied.
-			
+
 			the output is tetaCompass which is a global variable.
-			
-			ox: offet on x axis 
-			
+
+			ox: offet on x axis
+
 			oy: offset on y axis
-			
+
 			ky: gain on y axis
-			
-	
+
+
     @param  none
-    @return	none. The output valie is on tetaCompass global variable 
+    @return	none. The output valie is on tetaCompass global variable
 */
 
 void compass(void){
 
 	xc =  event.magnetic.x + ox;
 	yc = (event.magnetic.y + oy)*ky;
-	
+
 //				tetaCompass = atan2 (yc, xc);  		// arc tangent of y/x
-	
+
 	// ottengo angolo per integrazione
 	// l'angolo andare oltre 2PI e può essere resettato
 	// facilmente
@@ -2213,9 +2215,9 @@ void compass(void){
 	// se ci sono c'è stato lo scaravolto dell'angolo
 	if (deltaCompass >=  3.28) deltaCompass -= 6.28;
 	if (deltaCompass <= -3.28) deltaCompass += 6.28;
-	
+
 	// meno per avere angolo positivo in senso antiorario
 	// concorde con encoder
-	
+
 	tetaCompass -= deltaCompass;
 }
