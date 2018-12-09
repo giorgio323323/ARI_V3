@@ -102,7 +102,7 @@ class comunicazione (threading.Thread):
                 if str(msg)[:45]=="[WinError 10056] Richiesta di connessione ino":
                     pass;
                 else:
-                    print("errore ",msg)
+                    pass;
             messaggio=self.risp_ari(messaggio)
             if cfg.posatt[5]=='0':
                 self.com_ari_mov()
@@ -353,6 +353,18 @@ class mappa (threading.Thread):
             
 # **********param default****
 cfg.messaggirx.put((time.time(),'>p9600'))
+time.sleep(0.2)
+cfg.messaggirx.put((time.time(),'3F'+cfg.ED))
+time.sleep(0.2)
+cfg.messaggirx.put((time.time(),'3F1'+cfg.ED_BASE))
+time.sleep(0.2)
+cfg.messaggirx.put((time.time(),'3F2'+cfg.BASELINE))
+time.sleep(0.2)
+temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
+print ("temp",temp)
+cfg.messaggirx.put((time.time(),'3F3'+str(temp)))
+time.sleep(0.2)
+cfg.messaggirx.put((time.time(),'3E3'))
 #****************************
 cfg.id_radar=arianna_utility.idmap()
 print("id mappa", cfg.id_radar)

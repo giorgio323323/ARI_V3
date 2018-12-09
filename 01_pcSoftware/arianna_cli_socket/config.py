@@ -6,11 +6,19 @@ Created on 02/ott/2017
 import queue
 import os
 
+#parametri di configurazione fisica arianna
+ED="1"
+ED_BASE="1"
+BASELINE="153"
+DIAM_RUOTA=48
+encoderppr=20
+
+
+
 messaggirx=queue.PriorityQueue()  #comandi che arrivano da utente
 messaggicli=queue.Queue(0)        #risposte da mandare a interfaccia
 
-#code verso esp thread safe
-
+#code verso esp
 messaggiesptx=queue.Queue(0)   #coda messaggi da inviare a esp movimento
 messaggiesptx_altro=queue.Queue(0) #coda messaggi da inviare a esp altro
 messaggiesprx=queue.Queue(0)    #coda messaggi ricevuti da esp
@@ -18,7 +26,7 @@ messaggiesppos=queue.Queue(0)
 
 time_radar=0
 
-id_radar='PDHZ'
+id_radar='PDHP'
 passo_attraversamento=10
 
 #lista percorso
