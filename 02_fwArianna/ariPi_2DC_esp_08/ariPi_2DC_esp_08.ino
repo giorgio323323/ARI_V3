@@ -1293,7 +1293,7 @@ static float x, y;
 
 					case 'p':
 							if (monitorDati) return;
-							risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) + ";" + String(statoRun) + ";" + String(raggiorSterzo) + ";" + String(errore) ;
+							risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) + ";" + String(statoRun) + ";" + String(raggiorSterzo) + ";" + String(errore)+";"+String(inputString.substring(2)) ;
 						break;
 
 					case 'q':
