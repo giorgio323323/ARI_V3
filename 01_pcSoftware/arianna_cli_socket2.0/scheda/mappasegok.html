@@ -1,0 +1,154 @@
+<head>
+  <!-- Plotly.js 
+  var trace1 = {
+  x: [0, 100,null,200,300],
+  y: [0, 100,null,200,300],
+  type: 'line'
+};
+  
+  -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  
+</head>
+<body>
+<!-- Plotly chart will be drawn inside this DIV -->
+<div id="myDiv" style="width:800; height: 800;"></div>
+  <script>
+var trace1 = {
+  x: [],
+  y: [],
+  type: 'line',
+	  line: {
+		    color: 'rgb(0, 0, 0)',
+		    width: 5
+		  }
+};
+var tracep10 = {
+		  x: [],
+		  y: [],
+		  type: 'scatter',
+		  mode: "markers",
+		  name: '100%',
+		  marker: { size: 10,
+			  color: "rgba(255, 0, 0, 1)"}
+		};
+var tracep07 = {
+		  x: [],
+		  y: [],
+		  type: 'scatter',
+		  mode: "markers",
+		  name: '75%',
+		  marker: { size: 10,
+			  color: "rgba(255, 0, 0, 0.7)"}
+		};
+var tracep05 = {
+		  x: [],
+		  y: [],
+		  type: 'scatter',
+		  mode: "markers",
+		  name: '50%',
+		  marker: { size: 10,
+			  color: "rgba(255, 0, 0, 0.5)"}
+		};
+var tracep02 = {
+		  x: [],
+		  y: [],
+		  type: 'scatter',
+		  mode: "markers",
+		  name: '20%',
+		  marker: { size: 10,
+			  color: "rgba(255, 0, 0, 0.25)"}
+		};
+var tracep00 = {
+		  x: [],
+		  y: [],
+		  type: 'scatter',
+		  mode: "markers",
+		  name: '0%',
+		  marker: { size: 10,
+			  color: "rgba(0, 255, 0, 0.2)"}
+		};
+
+var vx=[];
+var vy=[];
+for (i=-295; i<305; i=i+10) { 
+	for (a=-295; a<305; a=a+10) { 
+	vx.push(i);
+	vy.push(a);
+	}
+}
+var trace4 = {
+		  x: vx,
+		  y: vy,
+		  type: 'scatter',
+		  opacity: 0.01
+		};
+var data = [ trace4,trace1,tracep10,tracep07,tracep05,tracep02,tracep00];
+var layout = {
+		hovermode : 'closest',
+  xaxis: {
+    autotick: true,
+    range: [-295,305], 
+    ticks: 'outside',
+    tick0: 0,
+    dtick: 1,
+    ticklen: 8,
+    tickwidth: 4,
+    tickcolor: '#000'
+  },
+  yaxis: {
+	  scaleanchor : 'x',
+    autotick: true,
+    range: [-295, 305], 
+    ticks: 'outside',
+    tick0: 0,
+    dtick: 1,
+    ticklen: 8,
+    tickwidth: 4,
+    tickcolor: '#000'
+  },shapes: [
+
+             //Rectangle reference to the axes
+
+             
+        {
+                   type: 'rect',
+                   xref: 'x',
+                   yref: 'y',
+                   x0: 0.0,
+                   y0: 0.0,
+                   x1: 10.0,
+                   y1: 10.0,
+                   line: {
+                     color: 'rgb(0, 0, 255)',
+                     width: 3
+                   },
+                   fillcolor: 'rgba(0, 0, 255, 0.7)'
+                 }
+        
+        ,{
+                     'type': 'circle',
+                     'xref': 'x',
+                     'yref': 'y',
+                     'fillcolor': 'rgba(0, 0, 0, 1)',
+                     'x0': 2.4999816339744836,
+                     'y0': 7.499999999966269,
+                     'x1': 7.499981633974484,
+                     'y1': 12.499999999966269,
+                     'line': {
+                         'color': 'rgba(0, 0, 0, 1)',
+                     }}
+        
+             
+             
+           ]
+};
+var myPlot = document.getElementById('myDiv');
+Plotly.newPlot('myDiv', data, layout);
+myPlot.on('plotly_click', function(eventdata){
+    window.parent.document.getElementById("targettxt").value=eventdata.points[0].x+'0';
+    window.parent.document.getElementById("targettxt2").value=eventdata.points[0].y+'0';
+    window.parent.document.getElementById("targetcmd").value='9t'+(eventdata.points[0].x+'0|'+eventdata.points[0].y+'0');
+});
+</script>
+</body>     
