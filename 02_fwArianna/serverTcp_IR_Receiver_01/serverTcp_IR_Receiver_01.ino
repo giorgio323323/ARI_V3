@@ -1,54 +1,63 @@
+#define V_FW_ESP8266	"1.00.01"
 /*
+ * 	stuffcube.wordpress.com
+
+
+	16dic18 1.00.01
+		aggiunta versione
+		
+ 
+	04mag18
+		update con udp discovery
+
+		
+	13ago18
+		aggiunta interfaccia per configurazione WiFi
+		messo un solo sensore IR
+
+		dichiarando diversi ricevitori su pin diversi non sembrava funzionare
+		ho inserito un circuito che mi permette di selezionare il ricevitore desiderato
+
+		da fermo
+		a comando faccio n letture, ritorno la percentuale di letture con A9 o C9
+		su ogni sensore.
+
+  28apr18
+		porting su ESP (scheda wemos D1 R2 & mini)
+		aggiunte librerie, vedi esempio ESP8266_IRreceive demo
+		#include <IRremoteESP8266.h>
+		#include <IRrecv.h>
+		#include <IRutils.h> 
+		aggiunto cast a long su Serial.println((long)results.value, HEX);
+		variata mappatura pin
+		merge conserertcp_arianna_2.ino    
+
+	06apr18
+		rimosso lettura continua poichè ogni tanto partiva da sola
+		pezza
+
+
+	29dic17 aggiunta gestione barriera di arrivo
+		i codici letti possono essere diversi
+		la lettura viene fatta da fermo. QUindi la barriera è occupata o no.
+		il codice ricevuto è unico nella sessione
+		ritorno il codice ricevuto e il numero di occorrenze
+	  
+	03dic17		IRrecvDemo_1.ino
+		il comando R1 effettua una lettura multipla dei tre sensori
+		e ritorna i risultati.
+		è coordinato con IRsendDemo in docking folder
+
+	23nov17 	IRrecv_00
+
+
+
  * IRremote: IRrecvDemo - demonstrates receiving IR codes with IRrecv
  * An IR detector/demodulator must be connected to the input RECV_PIN.
  * Version 0.1 July, 2009
  * Copyright 2009 Ken Shirriff
  * http://arcfn.com
- * 
- * stuffcube.wordpress.com
-
-  scheda Pro o Mnin ATmega328P (5V, 16Mhz)
-
-	dichiarando diversi ricevitori su pin diversi non sembrava funzionare
-	ho inserito un circuito che mi permette di selezionare il ricevitore desiderato
-
-	da fermo
-	a comando faccio n letture, ritorno la percentuale di letture con A9 o C9
-	su ogni sensore.
-		
-	23nov17 	IRrecv_00
-	03dic17		IRrecvDemo_1.ino
-				il comando R1 effettua una lettura multipla dei tre sensori
-				e ritorna i risultati.
-				è coordinato con IRsendDemo in docking folder
-
-	29dic17 aggiunta gestione barriera di arrivo
-			i codici letti possono essere diversi
-			la lettura viene fatta da fermo. QUindi la barriera è occupata o no.
-			il codice ricevuto è unico nella sessione
-			ritorno il codice ricevuto e il numero di occorrenze
-
-  06apr18
-      rimosso lettura continua poichè ogni tanto partiva da sola
-      pezza
-
-  28apr18
-      porting su ESP (scheda wemos D1 R2 & mini)
-      aggiunte librerie, vedi esempio ESP8266_IRreceive demo
-      #include <IRremoteESP8266.h>
-      #include <IRrecv.h>
-      #include <IRutils.h> 
-      aggiunto cast a long su Serial.println((long)results.value, HEX);
-      variata mappatura pin
-      merge conserertcp_arianna_2.ino    
-
-	04mag18
-		update con udp discovery
-	
-	13ago18
-		aggiunta interfaccia per configurazione WiFi
-		messo un solo sensore IR
-  
+ * 	
 Starts listening for an IR code.
 int irrecv.decode(&results)
 
@@ -191,8 +200,9 @@ void setup()
 
   
   
-	Serial.println("");  
-	Serial.println("serverTcp_IR_Recerver_01.ino: 16ago18");  
+	Serial.println();  
+	Serial.print("serverTcp_IR_Recerver_01.ino. V_FW_ESP8266: ");  
+	Serial.println(V_FW_ESP8266);  
 
 	irRecv.enableIRIn(); // Start the receiver
 
@@ -239,7 +249,10 @@ void setup()
 	ticker.detach();
   //keep LED on
 	digitalWrite(LED, LOW);
-
+	
+	if (verbose){
+		Serial.println("end init");
+	}
 }
 
 			

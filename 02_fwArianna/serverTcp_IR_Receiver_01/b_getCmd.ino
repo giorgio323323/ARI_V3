@@ -60,6 +60,9 @@ void getCmdFromClient(){
 				if(buffr[2]=='d'){  // comando per docking station
 					serverClient.print(getCmd(buffr));
 				}
+				if(buffr[2]=='v'){  // comando per docking station
+					serverClient.print(V_FW_ESP8266);
+				}
 			}
 				// altrimenti sono per il mcro sotto (Arduino)
 			else {

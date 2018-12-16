@@ -1,6 +1,14 @@
-#define V_FW_ATMEGA	"3.04.00"
+#define V_FW_ATMEGA	"3.04.01"
 /**@file ariPi_2DC_esp_08.ino */
-/*
+/* stuffcube.wordpress.com
+
+   09dic18  3.04.01
+			gestione lidar con ritorno in mm divido il valore per 10
+			aggiunto divisore divLidar come parametro in E2prom per vecchi lidar
+			modificati valori di default per meccanica corrente
+			corretto errore in load default
+			caricando questa versione la prima volta vanno ripristinati i valori meccanici
+
 	01dic18 3.04.00
 			sensore ostacolo anteriore off alla partenza. va abilitato per usarlo
 			aggiunta V_FW_ATMEGA
@@ -246,7 +254,6 @@ aggiustare le dirVx = 0 gestite in odometro
  * You can find it here: https://www.pololu.com/product/2130
 
 
-   09/12/2018 gestione lidar con ritorno in mm divido il valore per 10
  */
 
 
@@ -464,7 +471,7 @@ float 	tetaRef			= 0.0;			///< y    attuale misurato da odometria
 
 int 	distRef 		= 60;			///< distanza riferimento per modo R1/R2           [cm]
 int 	distOstacolo    = 51;		    ///< distanza dell'Ostacolo per arresto automatico [cm]. N.B. sotto i 50 cm a volte non legge.
-int 	divLidar    = 10;				// alcune versioni del lidar ritornano in mm altre in cm, uniformiamo a cm
+int 	divLidar    	= 1;			///< alcune versioni del lidar ritornano in mm altre in cm, uniformiamo a cm
 
 float 	tetaMisura		= 0.0;			///< teta da bussola
 float	xc, yc, tetaCompass; 			///< vettori magnetici dalla bussola
@@ -518,8 +525,8 @@ sensors_event_t event;		// ID_009
 void setup() {
     // initialize serial:
     Serial.begin 	(115200);
-    Serial.println	("setup starting!");
-    Serial.println	("Init: ari2DC_esp_08.ino 08ago18");
+    Serial.print	("setup starting! FW version: ");
+    Serial.println	(V_FW_ATMEGA);
 
 	pinMode(LED1, 				OUTPUT);
 	pinMode(LED2, 				OUTPUT);
@@ -547,11 +554,11 @@ void setup() {
 		Serial.println("Ooops, no LSM303 detected ... Check your wiring!");
 		bussola = 0;
     }
-    Serial.println("init LSM done");
-
-    /* Display some basic information on this sensor */
-    displaySensorDetails();
-
+	else{
+		Serial.println("init LSM done");
+		/* Display some basic information on this sensor */
+		displaySensorDetails();
+	}
 
 	pinMode(ledPin, 	OUTPUT);
 	pinMode(laserPin, 	OUTPUT);
@@ -594,6 +601,10 @@ void setup() {
 	DataEEprom(LEGGI);  // carica coefficienti da e2prom
 	//DataEEprom(5);  	/// 5 ARI3, 4 ARI2 carica coefficienti da e2prom
 
+	
+	divLidar = 1;
+	
+	
     Serial.print  ("BASELINE: ");
     Serial.println( BASELINE   );
     Serial.print  ("GIRO_RUOTA: ");
@@ -606,6 +617,8 @@ void setup() {
 	firstRun = 1;
 
 	digitalWrite(LED1, LOW);
+	digitalWrite(LED2, LOW);
+	digitalWrite(LED3, LOW);
 
     Serial.println("setup done!");
 
@@ -1293,6 +1306,8 @@ static float x, y;
 
 					case 'p':
 							if (monitorDati) return;
+							digitalWrite(LED1, !digitalRead(LED1));
+
 							risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) + ";" + String(statoRun) + ";" + String(raggiorSterzo) + ";" + String(errore)+";"+String(inputString.substring(2)) ;
 						break;
 
@@ -1940,7 +1955,7 @@ int  i = 0;
 			case 2:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, BASELINE);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, BASELINE);
-					if (comando == DEFAULT)			BASELINE = 130.0;
+					if (comando == DEFAULT)			BASELINE = 220.0;
 
 						eeAddress += sizeof(float);
 				break;
@@ -1948,7 +1963,7 @@ int  i = 0;
 			case 3:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, GIRO_RUOTA);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, GIRO_RUOTA);
-					if (comando == DEFAULT)			GIRO_RUOTA = 2.728;
+					if (comando == DEFAULT)			GIRO_RUOTA = 1.995;
 
 						eeAddress += sizeof(float);
 				break;
@@ -1988,7 +2003,7 @@ int  i = 0;
 			case 8:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kiTeta);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kiTeta);
-					if (comando == DEFAULT)			ky = 0.02;
+					if (comando == DEFAULT)			kiTeta = 0.2;
 
 						eeAddress += sizeof(float);
 				break;
@@ -1996,7 +2011,7 @@ int  i = 0;
 			case 9:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kp_guida);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kp_guida);
-					if (comando == DEFAULT)			ky = 0.5;
+					if (comando == DEFAULT)			kp_guida = 0.5;
 
 						eeAddress += sizeof(float);
 				break;
@@ -2004,12 +2019,20 @@ int  i = 0;
 			case 10:	//
 					if (comando == SCRIVI)			EEPROM.put(eeAddress, kd_guida);
 					if (comando == LEGGI)			EEPROM.get(eeAddress, kd_guida);
-					if (comando == DEFAULT)			ky = 10.0;
+					if (comando == DEFAULT)			kd_guida = 40.0;
 
 						eeAddress += sizeof(float);
 				break;
 
 			case 11:	//
+					if (comando == SCRIVI)			EEPROM.put(eeAddress, divLidar);
+					if (comando == LEGGI)			EEPROM.get(eeAddress, divLidar);
+					if (comando == DEFAULT)			divLidar = 1.0;
+
+						eeAddress += sizeof(float);
+				break;
+
+			case 12:	//
 					endList = 1;
 				break;
 
