@@ -2,7 +2,7 @@
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
     24dic18 3.05.00
-      aggiunto vl53 per la gestione ostacoli, ritorna ost come segnale  per non creare confusione con lidar
+      aggiunto vl53 per la gestione ostacoli, ritorna ost come segnale  per non creare confusione con lidar, aggiunto parametro lidar
 
    09dic18  3.04.01
       gestione lidar con ritorno in mm divido il valore per 10
@@ -1646,6 +1646,7 @@ static float x, y;
         F1xx ED_BASE
         F2xx BASELINE
         F3xx GIRO_RUOTA
+        F4xx Divisore lidar
 
       */
       case 'F':
@@ -1666,6 +1667,10 @@ static float x, y;
           case '3':
             GIRO_RUOTA = x;
             risposta = "F3_GIRORUOTA: " + String(GIRO_RUOTA, 6);
+            break;
+          case '4':
+            divLidar = x;
+            risposta = "div lidar: " + String(divLidar, 6);
             break;
         }
         break;
