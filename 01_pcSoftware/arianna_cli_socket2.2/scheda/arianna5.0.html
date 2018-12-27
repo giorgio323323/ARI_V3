@@ -1,0 +1,500 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="keywords" content="jquery,ui,easy,easyui,web">
+	<meta name="description" content="easyui help you build your web page easily!">
+	<title>jQuery EasyUI Demo</title>
+	<link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/icon.css">
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+	<script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="http://www.jeasyui.com/easyui/datagrid-dnd.js"></script>
+	<style type="text/css">
+	input[type="number"] {
+   							width:50px;
+						}
+		.products{
+			list-style:none;
+			margin-right:300px;
+			padding:0px;
+			height:100%;
+		}
+		.resizedTextbox {width: 30px; height: 15px}
+		.products li{
+			display:inline;
+			float:left;
+			margin:10px;
+		}
+		.item{
+			display:block;
+			text-decoration:none;
+		}
+		.item img{
+			border:1px solid #333;
+		}
+		.item p{
+			margin:0;
+			font-weight:bold;
+			text-align:center;
+			color:#c3c3c3;
+		}
+		.mappa{
+			display:inline;
+			float:left;
+			margin:0px;
+			border:2px solid #900;
+			padding:0px;
+			width:800px;
+			height:600px;
+			background-color:#eee;
+			color: #900;
+		}
+		.mappa2{
+
+			float:left;
+			margin:0px;
+			border:2px solid #900;
+			padding:0px;
+			width:200px;
+			height:200px;
+			background-color:#eee;
+			color: #900;
+		}
+		.cart{
+			position:fixed;
+			right:0;
+			top:0;
+			width:300px;
+			height:100%;
+			background:#ccc;
+			padding:0px 10px;
+		}
+		h1{
+			text-align:center;
+			color:#555;
+		}
+		h2{
+			position:absolute;
+			font-size:16px;
+			left:10px;
+			bottom:20px;
+			color:#555;
+		}
+		.total{
+			margin:0;
+			text-align:right;
+			padding-right:20px;
+		}
+	</style>
+	<script>
+		var data = {"total":0,"rows":[]};
+		var totalCost = 0;
+		
+		$(function(){
+			//setTimeout(stato,3000)		
+			$('#cartcontent').datagrid({
+				singleSelect:true,
+				rownumbers: true,
+				onLoadSuccess:function(){
+					$(this).datagrid('enableDnd');
+				},
+				onDrop:function(destRow,sourceRow,point){
+					console.log(destRow);
+					console.log(sourceRow);
+					console.log(point);
+				}
+			});
+			$('.item').draggable({
+				revert:true,
+				proxy:'clone',
+				onStartDrag:function(){
+					$(this).draggable('options').cursor = 'not-allowed';
+					$(this).draggable('proxy').css('z-index',10);
+				},
+				onStopDrag:function(){
+					$(this).draggable('options').cursor='move';
+				}
+			});
+			$('.cart').droppable({
+				onDragEnter:function(e,source){
+					$(source).draggable('options').cursor='auto';
+				},
+				onDragLeave:function(e,source){
+					$(source).draggable('options').cursor='not-allowed';
+				},
+				onDrop:function(e,source){
+					var name = $(source).find('p:eq(0)').html();
+					var price = $(source).find('p:eq(1)').html();
+					//addProduct(name, parseFloat(price.split('$')[1]));
+					//alert($(document.getElementById('Balloontxt')).val());
+					
+					if (name!='cancella' && name!='cancella tutto' && name!='salva')
+						{
+						addProduct(name, parseFloat($(document.getElementById(name+'txt')).val()),$(document.getElementById(name+'cmd')).val());
+						}
+					else
+						{
+						if (name=='cancella')
+							{delProduct(name, parseFloat($(document.getElementById(name+'txt')).val()));}
+						if (name=='cancella tutto')
+								{delProduct_all();}
+						if (name=='salva')
+							{
+
+							a=$(document.getElementById(name+'cmd')).val().split("+");
+							for (i=0 ; i<a.length; i++)
+								{
+								b=a[i].split("-");
+								
+														
+									if (b[0]!="esegui" && b[0]!="")
+										{
+										addProduct(b[0],b[1],b[2])
+										}
+								
+								}
+							}
+						
+						}
+					if (name=='esegui')
+					{
+					inviacomandi();
+					
+					}
+				}
+			});
+			
+		});
+		
+
+		function addProduct(name,price,cod){
+			function add(){
+				if (name!=null)
+				{
+				for(var i=0; i<data.total; i++){
+					var row = data.rows[i];
+					if (row.name == name && 1==2){
+						row.quantity += 1;
+						return;
+					}
+				}
+				data.total += 1;
+					
+				data.rows.push({
+					name:name,
+					cod:cod,
+					price:price
+				});}
+		
+			}
+			add();
+			totalCost += price;
+			$('#cartcontent').datagrid('loadData', data);
+			$('div.cart .total').html('Total: $'+totalCost);
+		}
+
+		function delProduct(name,price){
+			function add(){
+				data.total -= 1;
+				data.rows.pop();
+		
+			}
+			add();
+			totalCost += price;
+			$('#cartcontent').datagrid('loadData', data);
+			$('div.cart .total').html('Total: $'+totalCost);
+		}
+		function delProduct_all(){
+			data.total = 0;
+			totalCost=0;
+			 data = {"total":0,"rows":[]};
+			$('#cartcontent').datagrid('loadData', data);
+			$('div.cart .total').html('Total: $'+totalCost);
+		}
+
+		function inviacomandi(){
+			//per ogni elemento del carrelo invia i comandi sequenzialmente
+
+			for(var i=0; i<data.total; i++){
+					var row = data.rows[i];
+					if (row.name!="esegui") 
+						{
+					$.post("comandi_ui",
+
+							    {
+							        nome: row.name,
+							        valore: row.price,
+							        cod: row.cod
+							    },
+							    ).done(function( data ) {
+   							 
+  							});
+						}
+	
+			}
+			
+			}
+	    function rimuovi() {
+	        var list = document.getElementById("cartcontent"); 
+	        list.removeChild(list.childNodes[0]);
+	    }
+	    function cambiavalore1(nome,valore) {
+	        document.getElementById(nome+'cmd').value='3D'+valore+'|3R4|1r'; 
+	    }
+	    function cambiavalore3(nome,valore) {
+	        document.getElementById(nome+'cmd').value='3A'+valore+'|3D0|3R6|1r'; 
+	    }
+	    function cambiavaloreradar(nome)
+	    {
+	        document.getElementById(nome+'cmd').value='1q'+document.getElementById('radartxt').value+"+";
+	        document.getElementById(nome+'cmd').value+=document.getElementById('radartxt2').value+"+";
+	        document.getElementById(nome+'cmd').value+=document.getElementById('radartxt3').value;
+	    }
+	    
+	    
+	    function cambiavaloretgt(nome) {
+	        document.getElementById(nome+'cmd').value='9T'+document.getElementById('targettxt').value+"|";
+	        document.getElementById(nome+'cmd').value+=""+document.getElementById('targettxt2').value+"|";
+	        document.getElementById(nome+'cmd').value+="3R"+document.getElementById('targettxt3').value+"|1r";
+	    }
+	    
+	    function cambiavaloremov(nome,valore) {
+	        document.getElementById(nome+'cmd').value='T3A'+document.getElementById('movimentoangtxt').value+"|";
+	        document.getElementById(nome+'cmd').value+="3D"+document.getElementById('movimentodsttxt').value+"|";
+	        document.getElementById(nome+'cmd').value+="3R"+document.getElementById('movimentotipotxt').value+"|1r";
+	    }
+	    
+	    
+	    
+	    function sleepFor( sleepDuration ){
+	        var now = new Date().getTime();
+	        while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
+	    }
+		function stato(){
+			$.ajax({
+				  url:"risposte",
+				  type: "GET",
+				  dataType: "text",
+				  success:function(result){
+					  document.getElementById("result").value=result;
+				  },
+			  complete:function(result){
+			   setTimeout(stato,3000);
+			  }
+				});
+		};
+	    function salva_com()
+	    {
+	    	
+	    	var pezzo4='';
+	    	for(var i=0; i<data.total; i++){
+	    		var row = data.rows[i];
+	    		pezzo4+=row.name+"-"+row.price+"-"+row.cod+"+";
+	    	}
+
+	    	$("#salvacmd")[0].value=pezzo4;
+	    	document.getElementById("salvamsg").value="salvato";
+	    }
+
+	    
+	   
+	</script>
+	<script>
+
+	
+
+	</script>
+
+</head>
+<body style="margin:0;padding:0;height:100%;background:#fafafa;">
+
+	<ul id="prod" class="products">
+		<li>
+			<a href="#" class="item">
+				<img src="images/go-up.png" height="50" width="50"/>
+				<div  >
+					<p>movimento</p>
+				</div>
+			
+			</a>
+			<div class="valore1">
+			<label >ang</label>
+				<input  type="number"  id="movimentoangtxt"  value="0"  oninput="cambiavaloremov('movimento',document.getElementById('movimentotipotxt').value)"/>
+			<br>
+			<label >tpm</label>
+				<select id="movimentotipotxt" onchange="cambiavaloremov('movimento',document.getElementById('movimentotipotxt').value)"/>
+				<option value=""></option>
+				<option value="1">R1</option>
+				<option value="2">R2</option>
+				<option value="3">R3</option>
+				<option value="4">R4</option>
+				<option value="5">R5</option>
+				<option value="6">R6</option>
+				</select>
+				<br>
+
+			<label >dist</label><input  type="number"  id="movimentodsttxt"  value="1" oninput="cambiavaloremov('movimento',document.getElementById('movimentotipotxt').value)"/></div>
+			
+			
+			<div class="valore1"><input hidden id="movimentocmd"  value="T3A0|3D0|3R1|1r" /></div>
+		</li>
+		
+		<li>
+			<a href="#" class="item">
+				<img src="images/ruotasusestesso.jpg" height="50" width="50"/>
+				<div  >
+					<p>Ruotar6</p>
+				</div>
+			
+			</a>
+			<div class="valore1"><input type="number" id="Ruotar6txt" size="4" value="0" oninput="cambiavalore3('Ruotar6',this.value)" /></div>
+			<div class="valore1"><input hidden  id="Ruotar6cmd"  value="3A0|3D1|3R6|1r" /></div>
+		</li>
+		
+		
+		<li>
+			<a href="#" class="item">
+				<img src="images/laser.png" height="50" width="50"/>
+				<div>
+					<p>laser</p>
+				</div>
+			</a>
+			<div class="valore1"><input type="number"  id="lasertxt" min="0" max="1" style="width: 2em;" value="0" oninput="cambiavalore2('laser','3L'+this.value)" /></div>
+			<div class="valore1"><input hidden id="lasercmd"  value="3L0" = /></div>
+		</li>
+		
+		<li>
+			<a href="#" class="item">
+				<img src="images/mappa.jpg" height="50" width="50"/>
+				<div>
+					<p>idradar</p>
+				</div>
+			</a>
+			<div class="valore1"><input type="text"  id="idradartxt" style="width: 4em;" value="AAAA" oninput="cambiavalore2('idradar','SRV|id_radar|'+this.value)" /></div>
+			<div class="valore1"><input hidden id="idradarcmd"  value="SRV|id_radar|WC" = /></div>
+		</li>
+		<li>
+			<a href="#" class="item">
+				<img src="images/network-wireless.png" height="50" width="50"/>
+				<div>
+					<p>radar</p>
+				</div>
+			</a>
+			<div class="valore1"><label >in</label><input  type="number"  id="radartxt"  value="0"  oninput="cambiavaloreradar('radar')"/>
+			<br><label >fi</label><input  type="number"  id="radartxt2"  value="0"  oninput="cambiavaloreradar('radar')"/>
+			<br><label >st</label><input  type="number"  id="radartxt3"  value="1" oninput="cambiavaloreradar('radar')"/></div>
+			<div class="valore1"><input  hidden id="radarcmd"  value="1q0+0+1"  /></div>
+		</li>
+		<li>
+			<a href="#" class="item">
+				<img src="images/view-fullscreen.png" height="50" width="50"/>
+				<div>
+					<p>target</p>
+				</div>
+			</a>
+			<div class="valore1"><label >tgtx</label><input  type="number"  id="targettxt"  value="0"  oninput="cambiavaloretgt('target')"/>
+			<br><label >tgty</label><input  type="number"  id="targettxt2"  value="0"  oninput="cambiavaloretgt('target')"/>
+ 			<br><label >tpm</label>
+				<select id="targettxt3" onchange="cambiavaloretgt('target')"/>
+				<option value=""></option>
+				<option value="1">R1</option>
+				<option value="2">R2</option>
+				<option value="3">R3</option>
+				<option value="4">R4</option>
+				<option value="5">R5</option>
+				<option value="6">R6</option>
+				</select>
+				<br>          
+           </div>
+			<div class="valore1"><input hidden  id="targetcmd"  value="9t0|0|R4"  /></div>
+		</li>
+			<li>
+			<a href="#" class="item">
+				<img src="images/view-refresh.png" height="50" width="50"/>
+				<div>
+					<p>reset</p>
+				</div>
+			</a>
+			<div class="valore1"><input hidden type="number"  id="resettxt"  value="0"  /></div>
+			<div class="valore1"><input hidden id="resetcmd"  value="3H" = /></div>
+		</li>
+		<li>
+			<a href="#" class="item">
+				<img src="images/edit-clear.png" height="50" width="50"/>
+				<div>
+					<p>cancella</p>
+				</div>
+				<div class="valore1"><input hidden type="text" id="cancellatxt"  value="0" = /></div>
+				<div class="valore1"><input hidden id="cancellacmd"  value="" = /></div>		
+			</a>
+		</li>
+		<li>
+			<a href="#" class="item">
+				<img src="images/user-trash.png" height="50" width="50"/>
+				<div>
+					<p>cancella tutto</p>
+				</div>
+				<div class="valore1"><input hidden type="text" id="cancella tuttotxt"  value="0" = /></div>
+				<div class="valore1"><input hidden id="cancella tuttocmd"  value="" = /></div>		
+			</a>
+		</li>
+		<li>
+			<a href="#" class="item">
+				<img src="images/media-playback-start.png" height="50" width="50"/>
+				<div>
+					<p>esegui</p>
+				</div>
+				<div class="valore1"><input hidden type="text" id="eseguitxt"  value="0" = /></div>
+				<div class="valore1"><input hidden id="eseguicmd"  value="" = /></div>	
+			</a>
+		</li>
+		<li>
+			<a href="#" class="item">
+				<img src="images/document-save.png" height="50" width="50"/>
+				<div >
+					<p>salva</p>
+				</div>
+				<div class="valore1"><input hidden  type="text" id="salvatxt"  value="0" = /></div>
+				<div class="valore1"><input  hidden id="salvacmd" class="salvacmd"  value="0" = /></div>
+				<div class="valore1"><input  id="salvamsg" class="salvacmd"  size="4" value="vuoto" = /></div>	
+			</a>
+		</li>
+
+
+			</ul>
+	
+	<div class="cart">
+		<h1>elenco comandi</h1>
+		<div style="background:#fff">
+		<table id="cartcontent" fitColumns="true" onclick="rimuovi()" style="width:300px;height:500px;">
+			<thead>
+				<tr id=0>
+					<th field="name" width=140>Nome</th>
+					<th field="cod" width=60 align="right">COD</th>
+					<th field="price" width=60 align="right">valore</th>
+				</tr>
+			</thead>
+		</table>
+		</div>
+		<div style="background:#fff">
+		<!-- <textarea style="width:290px; height:50px;" id="result"></textarea>  -->
+		 <iframe id="result" src="http://127.0.0.1:8888/posizione"></iframe>
+		</div>
+		<p class="total"></p>
+		<h2><button onclick="salva_com()"  type="button">salva</button>
+		<button onclick="document.getElementById('framemappa').contentWindow.location.reload();document.getElementById('framemapparel').contentWindow.location.reload();"  type="button">ric mappa</button></h2>
+		
+	</div>
+	<ul class="products" >
+	<div class="mappa" style="margin-top:80px;" >
+		<h3><iframe id='framemappa' src="http://127.0.0.1:8081/mappa" width="800" height="600" >
+  		Contenuto alternativo per i browser che non leggono gli iframe.
+			</iframe></h3>
+
+	</div>
+	</ul>
+
+
+</body>
+</html>
