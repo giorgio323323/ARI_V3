@@ -84,7 +84,12 @@ while attcom==0:
         if cont>1:
             simu=0
             print("vado in simulazione")
-
+    elif simu==2:
+        ipclient="0.0.0.0"
+        TCP_PORT = 81
+        BUFFER_SIZE = 256
+        attcom=1
+        
 try:
     s.settimeout(3) 
     s.connect((ipclient, TCP_PORT))    #aggiungere verifica se funziona
