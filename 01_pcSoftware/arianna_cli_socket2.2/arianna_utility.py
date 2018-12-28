@@ -1,4 +1,4 @@
-# -*- coding: Latin -*-
+# -*- coding: Latin-1 -*-
 '''
 Created on 21/set/2017
 
@@ -39,11 +39,6 @@ def prt(testo,dest,gui):
             pass;
 
 #*************************funzioni di movimento********************************************
-def deco_ir(testo):
-    t=testo.split(";")
-    if t[1]=="16":
-        if cfg.tilt_Angle_home!=-1:
-            cfg.home[cfg.tilt_Angle_home]+=1
 
 
 def svuota_coda(coda):

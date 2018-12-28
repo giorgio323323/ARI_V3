@@ -75,10 +75,13 @@ class Benvenuto:
             elif cod[0:1]=='T':
                 poslid='0'
                 p=cod[1:999].split('|')
+                if p[2] not in ('3R1','3R3'):
+                    x,y=arianna_utility.calcola_movimento_teo(int(p[0][2:]), int(p[1][2:]))
+                    cfg.percorsi.put((time.time(),[x,y,p[2],poslid]))
+                else:
+                    cfg.percorsi.put((time.time(),[p[1],0,p[2],p[3],p[4]]))
                 #print("da web",p)
-                x,y=arianna_utility.calcola_movimento_teo(int(p[0][2:]), int(p[1][2:]))
-
-                cfg.percorsi.put((time.time(),[x,y,p[2],poslid]))
+                
 
                 #comando da gestire in python
             else:
