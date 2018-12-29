@@ -260,9 +260,31 @@
 	    }
 	    
 	    function cambiavaloremov(nome,valore) {
-	        document.getElementById(nome+'cmd').value='T3A'+document.getElementById('movimentoangtxt').value+"|";
+	    	 document.getElementById(nome+'cmd').value='T';
+
+	    	
+	        document.getElementById(nome+'cmd').value+='3A'+document.getElementById('movimentoangtxt').value+"|";
 	        document.getElementById(nome+'cmd').value+="3D"+document.getElementById('movimentodsttxt').value+"|";
-	        document.getElementById(nome+'cmd').value+="3R"+document.getElementById('movimentotipotxt').value+"|1r";
+	        document.getElementById(nome+'cmd').value+="3R"+document.getElementById('movimentotipotxt').value+"|";
+	    	if (document.getElementById('movimentotipotxt').value=='1' || document.getElementById('movimentotipotxt').value=='3')
+	    	{
+	    	document.getElementById('movimentodistotxt').hidden=false;
+	    	document.getElementById('lbldisto').hidden=false;
+	    	document.getElementById('movimentopantxt').hidden=false;
+	    	document.getElementById('lblpan').hidden=false;
+	    	
+	    	document.getElementById(nome+'cmd').value+='3P'+document.getElementById('movimentopantxt').value+"|";
+	        document.getElementById(nome+'cmd').value+='O0'+document.getElementById('movimentodistotxt').value+"|";
+	        
+	    	}
+	    	else
+	    	{
+	    	document.getElementById('movimentodistotxt').hidden=true;
+	    	document.getElementById('lbldisto').hidden=true;
+	    	document.getElementById('lblpan').hidden=true;
+	    	document.getElementById('movimentopantxt').hidden=true;
+	    	}
+	    	document.getElementById(nome+'cmd').value+="1r"
 	    }
 	    
 	    
@@ -323,7 +345,7 @@
 				<input  type="number"  id="movimentoangtxt"  value="0"  oninput="cambiavaloremov('movimento',document.getElementById('movimentotipotxt').value)"/>
 			<br>
 			<label >tpm</label>
-				<select id="movimentotipotxt" onchange="cambiavaloremov('movimento',document.getElementById('movimentotipotxt').value)"/>
+				<select id="movimentotipotxt" onchange="cambiavaloremov('movimento','tipo')"/>
 				<option value=""></option>
 				<option value="1">R1</option>
 				<option value="2">R2</option>
@@ -333,8 +355,11 @@
 				<option value="6">R6</option>
 				</select>
 				<br>
+			
 
 			<label >dist</label><input  type="number"  id="movimentodsttxt"  value="1" oninput="cambiavaloremov('movimento',document.getElementById('movimentotipotxt').value)"/></div>
+			<label id='lblpan' hidden>pan</label><input hidden type="number"  id="movimentopantxt"  value="60" oninput="cambiavaloremov('movimento','')"/></div>
+			<br><label id='lbldisto' hidden>ost</label><input hidden type="number"  id="movimentodistotxt"  value="60" oninput="cambiavaloremov('movimento','')"/></div>
 			
 			
 			<div class="valore1"><input hidden id="movimentocmd"  value="T3A0|3D0|3R1|1r" /></div>

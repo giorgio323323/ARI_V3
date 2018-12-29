@@ -13,6 +13,8 @@ ED_BASE="1"
 BASELINE="200"
 DIAM_RUOTA=48
 encoderppr=20
+K0='8'
+divisore_lidar='10'
 
 
 

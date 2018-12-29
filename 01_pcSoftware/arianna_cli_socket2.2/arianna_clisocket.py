@@ -140,18 +140,18 @@ class comunicazione_daari(threading.Thread):
                 arianna_utility.prt("rilevato ostacolo",3,my_gui)
             elif m[0:3]=='pos':
                 newpos=arianna_utility.deco_pos(str(m))
-                if newpos[8] in cfg.richieste_pos and newpos[8]!='':
-                    if arianna_utility.controlla_new_pos(cfg.posatt, newpos):
-                        cfg.posatt=newpos
-                        cfg.posatt[2]=str(float(cfg.posatt[2])*cfg.invx)
-                    arianna_utility.prt('newpos'+str(newpos),2,my_gui)
-                    if str(newpos[5])=='0':
-                        arianna_utility.prt("arianna ferma",2,my_gui)
-                        cfg.stato[0]=0  #sblocco successivi movimenti
-                        cfg.richieste_pos=[]
-
-                
-                
+                try:
+                    if newpos[8] in cfg.richieste_pos and newpos[8]!='':
+                        if arianna_utility.controlla_new_pos(cfg.posatt, newpos):
+                            cfg.posatt=newpos
+                            cfg.posatt[2]=str(float(cfg.posatt[2])*cfg.invx)
+                        arianna_utility.prt('newpos'+str(newpos),2,my_gui)
+                        if str(newpos[5])=='0':
+                            arianna_utility.prt("arianna ferma",2,my_gui)
+                            cfg.stato[0]=0  #sblocco successivi movimenti
+                            cfg.richieste_pos=[]
+                except:
+                    pass;
                 cfg.messaggiesppos.put(m)
                 #print('m1',m)
                 arianna_utility.prt(m, 2, my_gui)
@@ -301,6 +301,23 @@ class elabora (threading.Thread):
             
            
             destinazione=cfg.percorsi.get()
+            if destinazione[1][2]=='3R3' or destinazione[1][2]=='3R1':
+                cfg.messaggirx.put((time.time(),destinazione[1][3]))
+                time.sleep(0.1)
+                cfg.messaggirx.put((time.time(),destinazione[1][4]))
+                time.sleep(0.1)
+                cfg.messaggirx.put((time.time(),destinazione[1][0]))
+                time.sleep(0.1)
+                cfg.messaggirx.put((time.time(),destinazione[1][2]))
+                time.sleep(0.1)
+                cfg.messaggirx.put((time.time(),'1r'))
+                time.sleep(0.1)
+                statosmf.release()  
+                semaelabora.release() 
+                return
+            
+                
+            
 
             if cfg.dist_libera<=50 and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)==0:
                 print("davanti non posso andare cosa faccio?")
@@ -396,9 +413,11 @@ if cfg.par_ini_car==1:
     temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
     print ("comandi vari inseriti")
     cfg.messaggirx.put((time.time(),'3F3'+str(temp)))
-    time.sleep(0.2)
+    time.sleep(0.5)
+    cfg.messaggirx.put((time.time(),'3K0'+str(cfg.K0)))
+    time.sleep(0.5)
     cfg.messaggirx.put((time.time(),'3E3'))
-time.sleep(0.2)
+time.sleep(0.5)
 cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
 time.sleep(0.2)
 cfg.id_radar=arianna_utility.idmap()
@@ -428,7 +447,7 @@ thread5.start()
 time.sleep(0.1)
 thread6.start()
 
-webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
+#webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
 
 root.mainloop()
 #apro browser
