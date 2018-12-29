@@ -20,13 +20,16 @@ void getCmdFromClient(){
 	  
 	//parte di comunicazione via socket
 	char buffc;
+	
+	/*
+	//a intervalli regolari chiedo dati a arduino sulla posizione  
 	if (serverClient && serverClient.connected()){
-		if(millis()-intervallopos>ultimopos){//a intervalli regolari chiedo dati a arduino sulla posizione  
+		if(millis()-intervallopos>ultimopos){
 			ultimopos=millis();
 			if (debug==0) Serial.println("!1p?");
 		}
 	} 
-
+	*/
 	//qui mi arrivano le richieste da python
 	if(serverClient.available()){
 		buffc = serverClient.read();
@@ -48,15 +51,7 @@ void getCmdFromClient(){
 			buffr += buffc;
 			// il caratter > indica caratteri al micro locale (ESP)
 			if (buffr[1]=='>'){
-				// comando cambio tempo
-				if(buffr[2]=='p'){
-					appoggio[0]=buffr[3];
-					appoggio[1]=buffr[4];
-					appoggio[2]=buffr[5];
-					appoggio[3]=buffr[6];
-					intervallopos=atof(appoggio);
-					serverClient.print("!cambiato tempo?");
-				} 
+				
 				if(buffr[2]=='d'){  // comando per docking station
 					serverClient.print(getCmd(buffr));
 				}

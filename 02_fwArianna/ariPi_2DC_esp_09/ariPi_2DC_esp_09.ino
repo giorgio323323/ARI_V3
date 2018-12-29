@@ -1,40 +1,47 @@
-#define V_FW_ATMEGA  "3.05.00"
+#define V_FW_ATMEGA  "3.05.01"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
-    24dic18 3.05.00
-      aggiunto vl53 per la gestione ostacoli, ritorna ost come segnale  per non creare confusione con lidar, aggiunto parametro lidar
+    27dic18 3.05.01
+		valore default KpTeta da 0.8 a 8
+		baco: caricava KpTeta con valore di default in firstRun
+		rimossa risposta "mis:"
+		rimosso cmd 'B', il sensore ostacolo si autodetecta
 
-   09dic18  3.04.01
-      gestione lidar con ritorno in mm divido il valore per 10
-      aggiunto divisore divLidar come parametro in E2prom per vecchi lidar
-      modificati valori di default per meccanica corrente
-      corretto errore in load default
-      caricando questa versione la prima volta vanno ripristinati i valori meccanici
+	24dic18 3.05.00
+		aggiunto vl53 per la gestione ostacoli, ritorna ost come segnale  per non creare confusione con lidar, aggiunto parametro lidar
 
-  01dic18 3.04.00
-      sensore ostacolo anteriore off alla partenza. va abilitato per usarlo
-      aggiunta V_FW_ATMEGA
-      formato M.mm.sb
-      M: il cambio richiede modifiche hw. Aggiungere un sensore (es sensore frontale) non è una modifica hw, è una opzione
-      mm: aggiunta di una funzione, le versioni precedenti non la supportano. es la gestione del sensore frontale.
-      sb: subversion. si migliorano funzioni o corregono bachi. nulla viene aggiunto.
+	09dic18  3.04.01
+		gestione lidar con ritorno in mm divido il valore per 10
+		aggiunto divisore divLidar come parametro in E2prom per vecchi lidar
+		modificati valori di default per meccanica corrente
+		corretto errore in load default
+		caricando questa versione la prima volta vanno ripristinati i valori meccanici
 
-      richiesta "h" versione V_FW_ATMEGA
-      printDatiCalibrazione dava errore per risposta troppo lunga
+	01dic18 3.04.00
+		sensore ostacolo anteriore off alla partenza. va abilitato per usarlo
+		aggiunta V_FW_ATMEGA
+		formato M.mm.sb
+		M: il cambio richiede modifiche hw. Aggiungere un sensore (es sensore frontale) non è una modifica hw, è una opzione
+		mm: aggiunta di una funzione, le versioni precedenti non la supportano. es la gestione del sensore frontale.
+		sb: subversion. si migliorano funzioni o corregono bachi. nulla viene aggiunto.
 
-  25nov18 definiti LED1..3
-      attivato led1 insieme a LedPuntatore
+		richiesta "h" versione V_FW_ATMEGA
+		printDatiCalibrazione dava errore per risposta troppo lunga
 
-  11Nov18
-      gestione sensore ostacolo frontale
-      comando B per abilitarlo B0 off, B1 On
-      nota che il Lidar si sente sull'IR. Se tolgo lidar dall'asse
-      non interferisce.
+	25nov18 definiti LED1..3
+		attivato led1 insieme a LedPuntatore
+
+	11Nov18
+		gestione sensore ostacolo frontale
+		comando B per abilitarlo B0 off, B1 On
+		nota che il Lidar si sente sull'IR. Se tolgo lidar dall'asse
+		non interferisce.
 
 
-  01Nov18 rivisto lidar. Introdotta guida a distanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
-      nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
-      introdotti parametri per guadagni regolatori vari
+	01Nov18 
+		rivisto lidar. Introdotta guida a distanza dalla parete. Modo R1 e R2. Parametro 'O' distRef.
+		nellla stringa "pos:..." aggiunto in coda "statoRun". Questo permette di coordinare il sw su pc.
+		introdotti parametri per guadagni regolatori vari
 
   08ott18
     lidardist da float a int, Piccola modifica in testOstacoli()
@@ -447,8 +454,6 @@ ari 1 con encoder da 35 ppr
 #define AVANTI      0
 #define INDIETRO    1
 
-#define KP_TETA_DEF   0.8     ///< valore default P contrllo guida con distanza muro
-
 #define MAX_STERZO  1.0       ///< massimo valore di sterzo. con 1 si ha una ruota ferma e l'altra al doppio della velocita'
 
 // parametri lettura e/o scrittura
@@ -462,13 +467,13 @@ float   errore;
 int   motorSpeed    = 0;
 int   motorSpeedValue = MODERATA;
 int   panAngle    = 90;     ///< angolo destinazione del servo Pan
-int   tiltAngle     = 90;     ///< angolo destinazione del servo Tilt
+int   tiltAngle     = 90;   ///< angolo destinazione del servo Tilt
 char  laser       = 0;      ///< stato uscita puntatore laser
-float kp_guida    = KP_TETA_DEF;  ///< guadagno proporzionale per controllo su distanza muro
-float kd_guida    = 10;   ///< guadagno derivativo    per controllo su distanza muro
+float kp_guida;  			///< guadagno proporzionale per controllo su distanza muro
+float kd_guida;   			///< guadagno derivativo    per controllo su distanza muro
 
-float kpTeta      = 2.0;      ///< guadagno proporzionale per controllo su teta
-float kiTeta      = 0.02;     ///< guadagno integrale per controllo su teta
+float kpTeta;      			///< guadagno proporzionale per controllo su teta
+float kiTeta;     			///< guadagno integrale per controllo su teta
 
 float   MAX_S     = 0.2;      ///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
 float   teta      = 0.0;      ///< teta attuale misurato da odometria
@@ -483,8 +488,8 @@ float   tetaMisura    = 0.0;      ///< teta da bussola
 float xc, yc, tetaCompass;      ///< vettori magnetici dalla bussola
 float deltaCompass,tetaCompass_prev, tetaCompassRead;   ///< variabili bussola
 char  modoGuida       = 0;      ///< modalita' di guida: odometro, bussola, misto, fusione ...
-char    bussola;            ///< presenza bussola
-char    sensore_ost;          ///< presenza laser ostacoli VL53L0X
+char    bussola;            	///< presenza bussola
+char    sensore_ost;          	///< presenza laser ostacoli VL53L0X, 1 attivo
 
 /** coefficienti calibrazione bussola */
 float ox = 21.0;    ///< offset lungo l'asse x. viene ricavato a seguito della calibrazione
@@ -509,7 +514,7 @@ float erroreK_1;      ///< variabili parte derivativa
 float DerActive;      ///< variabili parte derivativa
 
 char  occlusoDavanti;   ///< sensore IR anteriore, LOW in presenza di ostacolo
-char  enableFrontSensor = 0;  ///< sensore IR anteriore, High abilitato
+
 
 unsigned long   lastTime, lastTimeFast,timeLidar;
 float     teta_;
@@ -535,15 +540,15 @@ void setup() {
     Serial.print  ("setup starting! FW version: ");
     Serial.println  (V_FW_ATMEGA);
 
-  pinMode(LED1,         OUTPUT);
-  pinMode(LED2,         OUTPUT);
-  pinMode(LED3,         OUTPUT);
+	pinMode(LED1,         OUTPUT);
+	pinMode(LED2,         OUTPUT);
+	pinMode(LED3,         OUTPUT);
 
-  digitalWrite(LED1, HIGH);
-  digitalWrite(LED2, HIGH);
-  digitalWrite(LED3, HIGH);
+	digitalWrite(LED1, HIGH);
+	digitalWrite(LED2, HIGH);
+	digitalWrite(LED3, HIGH);
 
-  TFserial.begin  (TFMINI_BAUDRATE);  // seriale lidar
+	TFserial.begin  (TFMINI_BAUDRATE);  // seriale lidar
     tfmini.begin  (&TFserial);
 
     ESPserial.begin (115200);  // ID_002
@@ -554,81 +559,76 @@ void setup() {
 
     /* Initialise the sensor */
     Serial.println("init LSM");
-  bussola = 1;
-    if(!mag.begin())
-    {
-    /* There was a problem detecting the LSM303 ... check your connections */
-    Serial.println("Ooops, no LSM303 detected ... Check your wiring!");
-    bussola = 0;
-    }
-  else{
-    Serial.println("init LSM done");
-    /* Display some basic information on this sensor */
-    displaySensorDetails();
-  }
+	bussola = 1;
+	if(!mag.begin()){
+		/* There was a problem detecting the LSM303 ... check your connections */
+		Serial.println("Ooops, no LSM303 detected ... Check your wiring!");
+		bussola = 0;
+	}
+	else{
+		Serial.println("init LSM done");
+		/* Display some basic information on this sensor */
+		displaySensorDetails();
+	}
 
     sensore_ost=1;
-    if (!lox.begin()) {
-      Serial.println(F("Failed to boot VL53L0X"));
-      sensore_ost=0;
-    }
-  pinMode(ledPin,   OUTPUT);
-  pinMode(laserPin,   OUTPUT);
+	if (!lox.begin()) {
+		Serial.println(F("Failed to boot VL53L0X"));
+		sensore_ost=0;
+	}
+	else{
+		Serial.println("init VL53L0X done");
+	}
+	pinMode(ledPin,   OUTPUT);
+	pinMode(laserPin,   OUTPUT);
 
-  // setup digital inputs for IR sensors
-  pinMode(R_SIDE_FRONT,     INPUT);     // non usato
-  pinMode(L_SIDE_FRONT,     INPUT);
-  pinMode(ENB_R_SIDE_FRONT,   OUTPUT);    // non usato
-  pinMode(ENB_L_SIDE_FRONT,   OUTPUT);
-
-
-  pinMode(GIRO_DX_PIN,      INPUT);
-  pinMode(GIRO_SX_PIN,      INPUT);
-
-
-  digitalWrite(laserPin, LOW);
-
-  // attaches the servo on pin .. to the servo object
-  servoPan.attach  (SERVO_PAN_PIN );
-  servoTilt.attach (SERVO_TILT_PIN);
-
-  servoPan.write ( 90);
-  servoTilt.write( 90);
+	// setup digital inputs for IR sensors
+	pinMode(R_SIDE_FRONT,     INPUT);     // non usato
+	pinMode(L_SIDE_FRONT,     INPUT);
+	pinMode(ENB_R_SIDE_FRONT,   OUTPUT);    // non usato
+	pinMode(ENB_L_SIDE_FRONT,   OUTPUT);
 
 
-  // Attach motors to the input pins:
-  driver.attachMotorA(MTR_A_DX_P1, MTR_A_DX_P2);
-  driver.attachMotorB(MTR_B_SX_P1, MTR_B_SX_P2);
-
-  differenziale(0);
-
-  // odometro
-  attachInterrupt(digitalPinToInterrupt(GIRO_DX_PIN), odometroDxMisuraHW, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(GIRO_SX_PIN), odometroSxMisuraHW, CHANGE);
-
-  Serial.flush();
-  ESPserial.flush();  // ID_002
+	pinMode(GIRO_DX_PIN,      INPUT);
+	pinMode(GIRO_SX_PIN,      INPUT);
 
 
-  DataEEprom(LEGGI);  // carica coefficienti da e2prom
-  //DataEEprom(5);    /// 5 ARI3, 4 ARI2 carica coefficienti da e2prom
+	digitalWrite(laserPin, LOW);
 
-    Serial.print  ("BASELINE: ");
-    Serial.println( BASELINE   );
-    Serial.print  ("GIRO_RUOTA: ");
-    Serial.println( GIRO_RUOTA   );
-    Serial.print  ("GIRO_RUOTA_DX: ");
-    Serial.println( GIRO_RUOTA_DX   );
-    Serial.print  ("GIRO_RUOTA_SX: ");
-    Serial.println( GIRO_RUOTA_SX   );
+	// attaches the servo on pin .. to the servo object
+	servoPan.attach  (SERVO_PAN_PIN );
+	servoTilt.attach (SERVO_TILT_PIN);
 
-  firstRun = 1;
+	servoPan.write ( 90);
+	servoTilt.write( 90);
 
-  digitalWrite(LED1, LOW);
-  digitalWrite(LED2, LOW);
-  digitalWrite(LED3, LOW);
 
-    Serial.println("setup done!");
+	// Attach motors to the input pins:
+	driver.attachMotorA(MTR_A_DX_P1, MTR_A_DX_P2);
+	driver.attachMotorB(MTR_B_SX_P1, MTR_B_SX_P2);
+
+	differenziale(0);
+
+	// odometro
+	attachInterrupt(digitalPinToInterrupt(GIRO_DX_PIN), odometroDxMisuraHW, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(GIRO_SX_PIN), odometroSxMisuraHW, CHANGE);
+
+	Serial.flush();
+	ESPserial.flush();  // ID_002
+
+
+	DataEEprom(LEGGI);  // carica coefficienti da e2prom
+	//DataEEprom(5);    /// 5 ARI3, 4 ARI2 carica coefficienti da e2prom
+
+	Serial.println( risposta   );
+
+	firstRun = 1;
+
+	digitalWrite(LED1, LOW);
+	digitalWrite(LED2, LOW);
+	digitalWrite(LED3, LOW);
+
+	Serial.println("setup done!");
 
 }
 
@@ -659,45 +659,35 @@ static long exeTime, tInit;
       raggiorSterzo = 0.0;
       servoPan.write( panAngle);
       servoTilt.write(tiltAngle);
-      kpTeta = KP_TETA_DEF;
       digitalWrite( ENB_L_SIDE_FRONT, HIGH);
       timeLidar=millis();
       firstRun = 0;
     }
 
-    /**
+    /*
       test e azione ostacoli frontali
-      */
-    digitalWrite(ENB_L_SIDE_FRONT, enableFrontSensor);    //
+    */
 
     testOstacoli();
-    // verifica sensore IR anteriore, Low quando ostacolo
-    // se IR disabilitato non viene letto poichè a casusa del lidar
-    // anche se disabilitato ritorna un segnale.
-    if(sensore_ost==1) occlusoDavanti=vl53dist<distOstacolo;
-    else
-    {
-    if (enableFrontSensor)  occlusoDavanti = !digitalRead(L_SIDE_FRONT) || lidarDistance<distOstacolo;
-    else          occlusoDavanti = lidarDistance<distOstacolo;
-    }
+    if (sensore_ost == 1) 	occlusoDavanti = vl53dist		< distOstacolo;
+    else					occlusoDavanti = lidarDistance	< distOstacolo;
+    
 
         if (occlusoDavanti && (statoRun != 5) &&(statoRun != 6) &&(statoRun != 0))
         {
-            //motorSpeedRef = FERMO;
-            statoRun      = 99;   // senza rampa
-            motorSpeed    = 0;    // annullo rampa
-            motorSpeedRef   = 0;
-            risposta    = "ostacolo";
-            sendAnswer2(port);
-          if (sensore_ost==1)
-            {
-        risposta  = "ost;" + String(vl53dist);
-            }
-            else
-            {
-             risposta = "ost;" + String(lidarDistance);
-            }
-        sendAnswer2(port);
+			//motorSpeedRef = FERMO;
+			statoRun      	= 99;   // senza rampa
+			motorSpeed    	= 0;    // annullo rampa
+			motorSpeedRef   = 0;
+			risposta    	= "ostacolo";
+			sendAnswer2(port);
+			if (sensore_ost==1){
+				risposta = "ost;" + String(vl53dist);
+			}
+			else{
+				risposta = "ost;" + String(lidarDistance);
+			}
+			sendAnswer2(port);
         }
 
 
@@ -1418,8 +1408,6 @@ static float x, y;
     Axxx: Alfa. assegna Alfa, la direzione del robot. xxx è l'angolo in radianti, es 3.14. La direzione zero è definita all'accensione del robot. E' la direzione in avanti. Coincide con l'asse x.
         Alfa è positivo in senso antiorario.
 
-    Bx:   enableFrontSensor. 1 Enable, 0 disable
-
     Cxxx: assegna "raggiorSterzo" in [m]. La variabile è usata nella movimento R2, stabilisce il raggio della circonferenza su cui ruota il robot.
 
     Dxxx: Distance. La distanza che viene percorsa nel prossimo Run espressa in [mm]. La distanza è sempre incrementale.
@@ -1439,6 +1427,7 @@ static float x, y;
       F1xx ED_BASE
       F2xx BASELINE   mm
       F3xx GIRO_RUOTA   mm  = sviluppo ruota[mm]/(4*ppr)
+      F4xx Divisore lidar
 
       N.B. questi valori vanno attivati con un 3E3
 
@@ -1520,7 +1509,7 @@ static float x, y;
 
     Onxx:
         O0: distRef      [cm]. riferimento per guida a distanza fissa nei modi R1 e R2
-        O0: distOstacolo [cm]. distanza minima sotto la quale ARI si arresta
+        O1: distOstacolo [cm]. distanza minima sotto la quale ARI si arresta
 
     Pxxx:   orienta il servo PAN della testa. xxx è in gradi, 90° guarda in avanti, 0 a sinistra e 180 a destra.
         in alcuni casi, a seconda del servo usato, è bene limitare l'escursione ad esempio tra 10 e 170°.
@@ -1534,8 +1523,12 @@ static float x, y;
         x=2: R2. Il robot effettua un percorso circolare con raggio pari al parametro "C". Il raggiorSterzo può anche essere
              imposto direttamente con il comando "S". In questo caso sarà lo scorrimento tra le ruote dx e sx.
 
-        R1 e 2. i modi 1 e 3 fanno viaggiare il robot a una distanza fissa dalla parete laterale. la misura è fatta orinetando il LIDAR.
-             i due modi sono in test.
+        R1 e 3. i modi 1 e 3 fanno viaggiare il robot a una distanza fissa dalla parete laterale. la misura è fatta orinetando il LIDAR.
+            suggerimento, angolo lidar 45 rispetto alla parete
+			leggere distanza e metterla come distRef (O0)
+			mettere distOstacolo maggiore distRef (O1), per esempio + 30 cm
+			gli angoli pan (P) sono P45  seguo parete dx con R3
+			gli angoli pan (P) sono P135 seguo parete sx con R1
 
         x=99: provoca l'arresto del movimento
 
@@ -1587,21 +1580,22 @@ static float x, y;
 
     switch (char(inputString[1])) {
       case 'A':
-          tetaRef  = x*3.14/180.0;
-          risposta = "A: " + String( tetaRef, 3);
+			tetaRef  = x*3.14/180.0;
+			risposta = "A: " + String( tetaRef, 3);
         break;
 
       case 'B':
-          enableFrontSensor = x;
-          risposta = "B: " + String(enableFrontSensor);
+			//sensore_ost = x;
+			risposta = "B: libero";// + String(sensore_ost);
         break;
 
       case 'C':
-          if (abs(x) < 1000)
-            raggiorSterzo = LAGHEZZA_A_MEZZI/x;
-          else
-            raggiorSterzo = 0.0;
-          risposta = "S: " + String(raggiorSterzo, 3);
+		if (abs(x) < 1000)
+			raggiorSterzo = LAGHEZZA_A_MEZZI/x;
+		else
+			raggiorSterzo = 0.0;
+		
+		risposta = "S: " + String(raggiorSterzo, 3);
         break;
 
       case 'D':
@@ -1923,11 +1917,8 @@ static int numero = 0;
     i comandi sono:
 
     SCRIVI  0
-
     LEGGI   1
-
     DEFAULT 2
-
     ATTIVA  3 (attiva e ricalcola i valori GIRO_RUOTA DX, SX etc
 
     temporaneamente i valori 4 e 5 caricano dei valori di default calibrati su due macchine. 4 ARI_02, 5 ARI_03
@@ -1985,16 +1976,16 @@ int  i = 0;
         break;
 
       case 3: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, GIRO_RUOTA);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, GIRO_RUOTA);
-          if (comando == DEFAULT)     GIRO_RUOTA = 1.995;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, GIRO_RUOTA);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, GIRO_RUOTA);
+          if (comando == DEFAULT)     	GIRO_RUOTA = 1.995;
 
             eeAddress += sizeof(float);
         break;
 
       case 4: //
           if (comando == SCRIVI)      EEPROM.put(eeAddress, kpTeta);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, kpTeta);
+          if (comando == LEGGI)       EEPROM.get(eeAddress, kpTeta);
           if (comando == DEFAULT)     kpTeta = 8.0;
 
             eeAddress += sizeof(float);
@@ -2123,28 +2114,27 @@ static int i;
   if (monitorDati) return;
 
 
-  // ritorna dato a tempo al client
-  if ((millis()-timeLidar) > 1000){
-    timeLidar  = millis();
-    if (sensore_ost==1)         //ho il laser anteriore attivo
-    {
-    VL53L0X_RangingMeasurementData_t measure;
-    lox.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
-      if (measure.RangeStatus != 4) {  // phase failures have incorrect data
-        vl53dist=measure.RangeMilliMeter/10;
-        risposta  = "ost;" + String(measure.RangeMilliMeter/10);
+	// 
+	if ((millis()-timeLidar) > 1000){
+		timeLidar  = millis();
+		if (sensore_ost==1){         //ho il laser anteriore attivo
 
-        }
-      else {
-          vl53dist=999;
-
-        }
-
-    }
-    risposta  = "mis;" + String(lidarDistance);
-    sendAnswer2(port);
-  }
-
+			VL53L0X_RangingMeasurementData_t measure;
+			lox.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
+			
+			if (measure.RangeStatus != 4) {  // phase failures have incorrect data
+			
+				vl53dist = measure.RangeMilliMeter/10;
+				//risposta = "ost;" + String(measure.RangeMilliMeter/10);
+				//sendAnswer2(port);
+			}
+			else{
+				vl53dist=999;
+			}
+		}
+		//risposta	= "mis;" + String(lidarDistance);
+		//sendAnswer2(port);
+	}
 }
 
 /** @brief libreria lettura lidar

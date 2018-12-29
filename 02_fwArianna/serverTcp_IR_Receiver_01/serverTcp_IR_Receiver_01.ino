@@ -1,8 +1,13 @@
-#define V_FW_ESP8266	"1.00.01"
+#define V_FW_ESP8266	"1.00.02"
 /*@serverTcp_IR_Receiver_o1.ino
  * 	stuffcube.wordpress.com
 
 
+	28dic18 1.00.02
+		rimossa richiesta automatica del comando 'p'
+		rimossa impostazione tempo ">p" in b_getCmd.ino
+		
+		
 	16dic18 1.00.01
 		aggiunta versione
 		si legge con >v
@@ -131,8 +136,8 @@ WiFiUDP UDP;
 //udp discovery
 
 
-float intervallopos	=	700.0;
-float ultimopos		=	5000.0;
+//float intervallopos	=	700.0;
+//float ultimopos		=	5000.0;
 int   okcom1		=	0;
 int   okcom2		=	0;
 int   debug;
