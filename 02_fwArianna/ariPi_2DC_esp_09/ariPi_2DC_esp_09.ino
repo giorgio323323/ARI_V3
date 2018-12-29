@@ -7,6 +7,7 @@
 		rimossa risposta "mis:"
 		rimosso cmd 'B', il sensore ostacolo si autodetecta
 		aggiornata stringa di risposta a comando 'p'
+		campo ID msg 'p' in posizione 2
 
 	24dic18 3.05.00
 		aggiunto vl53 per la gestione ostacoli, ritorna ost come segnale  per non creare confusione con lidar, aggiunto parametro lidar
@@ -1285,9 +1286,10 @@ static float x, y;
 			case 'p':
 				if (monitorDati) return;
 				digitalWrite(LED2, !digitalRead(LED2));
-
+				
 				risposta = "pos:"			+\
 				String(millis())		+";"+\
+				String(inputString.substring(2)) +"+"+\
 				String(xpos)			+";"+\ 
 				String(ypos)			+";"+\
 				String(teta) 			+";"+\
@@ -1295,8 +1297,7 @@ static float x, y;
 				String(statoRun) 		+";"+\
 				String(raggiorSterzo) 	+";"+\
 				String(errore)			+";"+\
-				String(vl53dist)		+";"+\
-				String(inputString.substring(2)) ;
+				String(vl53dist);
 				break;
 
 			case 'q':
