@@ -31,7 +31,7 @@ void getCmdFromClient(){
 	} 
 	*/
 	//qui mi arrivano le richieste da python
-	if(serverClient.available()){
+	if(serverClient && serverClient.connected()){
 		buffc = serverClient.read();
 		//Serial.println(buffc); debug
 		
