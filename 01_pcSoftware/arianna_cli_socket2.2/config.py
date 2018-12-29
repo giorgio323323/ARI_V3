@@ -36,19 +36,15 @@ passo_attraversamento=10
 
 ostacoli=[]                 #punti ostacoli
 
-bloccarisp=0
 #####10,45,90,135,170
-tilt_Angle_home=-1
-
 
 timer_sleep=0
 #mappa numero di celle visitate,numero ok probabili, numero di ok assoluti
 dim_cella=10.0 #per mappa
-errore_lettura=10
 
 invx=1   #mettere meno in caso di inversione destra e sinistra
 #timestamp x y teta
-posatt=[0,0.0,0.0,1.5708,0,0,0,0]
+posatt=[0,0.0,0.0,1.5708,0,0,0,0,0]
 #stato 0 acq pos, 1 fermo , 2 in mov,3 percorso, 
 pos_teorica=[0,0]
 
@@ -57,35 +53,25 @@ richieste_fermo=[]
 richieste_pos=[]
 dist_libera=999
 ultimo_angolo_libero=[]
-ultima_richiesta_libero=[0,0.0,0.0,0,0,0,0,0]
-tiporadar=1    #1 tfmini ,2 radar, 3 VL53L0X
+ultima_richiesta_libero=[0,0.0,0.0,0,0,0,0,0,0]
+
 tempo_radar=0 #ogni tanto non sblocco
 
+errore_servo=-10 #aggiusto angolo del servo in quanto non è mai in asse perfetto con arianna
 
 radar_ini=0
 
 radar_ini_rel=0
                 
-pgmpath=''
+pgmpath=''  #da togliere
 
-mappa_tst={}
 mappa={}
 mappa_relativa={}
 mappa_rel_ass={}
-mappafile="mappa.txt"
-arianna_mappa="ariannapos.txt"
-if tiporadar==2:
-    angolo_radar=20.0
-    max_dst=250
-    divisore_dist=1  #valido per tfmini
-if tiporadar==1:
-    angolo_radar=2.5
-    max_dst=1000
-    divisore_dist=1  #valido per tfmini
-if tiporadar==3:
-    angolo_radar=10.0
-    max_dst=150
-    divisore_dist=1  #valido per tfmini
+
+angolo_radar=2.5
+max_dst=1000
+
   
 dst_prec=[]
 ang_prec=[]

@@ -49,7 +49,13 @@ def svuota_coda(coda):
         while cfg.messaggirx.empty()==False:
             a=cfg.messaggirx.get()
             
-
+def elencocmd(elenco,pausa=0.1):
+    for l in elenco:
+        print(l)
+        cfg.messaggirx.put((time.time(),l))
+        time.sleep(pausa)
+    
+    
 
 #********************funz geometriche e matematiche ****************************************
 def rotazione_punto(x,y,ang=85,ox=0,oy=0):
@@ -93,15 +99,15 @@ def calcola_movimento(angolo,distanza):
     if angolo%90==0:
         angolo=angolo+0.1
     b=distanza*math.sin(math.radians(angolo))*multy
-    by=float(cfg.posatt[2])+float(b)
+    by=float(cfg.posatt[3])+float(b)
     c=distanza*math.sin(math.radians(90-angolo))*multx
-    cx=float(cfg.posatt[1])+float(c)
+    cx=float(cfg.posatt[2])+float(c)
     print("target x, y",cx,by)
     return cx,by
 
 def calcola_movimento_inv(x,y,r):
-    dist=distanza_punti([float(cfg.posatt[1]),float(cfg.posatt[2])],[float(x),float(y)])
-    ang=angolo_base([float(cfg.posatt[1]),float(cfg.posatt[2])],[float(x),float(y)])
+    dist=distanza_punti([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
+    ang=angolo_base([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
     #print("dist,ang",dist,ang)
     return ['3A'+str(round(ang, 2)),'3D'+str(round(dist, 0)),r,'1r'],dist,ang
 
@@ -418,12 +424,7 @@ def crea_mappa(lettura,mappauso,tipo,verso,posattuale,dadb=0,dst=0,angolo=0):
         test=2        #ritengo solo di non aver ostacoli fino alla massima distanza
     elif ampiezza_laser(dst)==1:
         test=99       #caso sicuro
-    elif dst-cfg.dst_prec[-2]>cfg.errore_lettura:   #10 cm bho
-        test=1                          #lettura piu lontana
-    elif dst-cfg.dst_prec[-2]<-cfg.errore_lettura:
-        test=0                          #lettura piu vicina
-    elif abs(dst-cfg.dst_prec[-2])<cfg.errore_lettura:
-        test=3                          #stessa lettura
+                        
 
     rangeini=0
     rangefin=1
@@ -543,7 +544,7 @@ def trovadistanza(strx):
     a=strx.split("-")
     aa=a[2:-1]
     for ele in aa:
-        distanza=float(ele)/cfg.divisore_dist
+        distanza=float(ele)
         
         if distanza<=cfg.max_dst:
             vett.append(distanza)
@@ -556,7 +557,7 @@ def trovadistanza(strx):
     if len(vett)>=5:
         x=statistics.median(vett)
         arianna_db.scrivo_db_mappa(a[1],x,'l')
-        return x,int(a[1])
+        return x,int(a[1])+cfg.errore_servo
     
     else:
         return -1,int(a[1])
@@ -572,18 +573,18 @@ def approssimocella(i):
 
 
 def mappa_seg(mappauso=cfg.mappa,tipo="assoluta",linee=[]):
-    centro_arix=float(cfg.posatt[1])/10.0+5.0
-    centro_ariy=float(cfg.posatt[2])/10.0+5.0
+    centro_arix=float(cfg.posatt[2])/10.0+5.0
+    centro_ariy=float(cfg.posatt[3])/10.0+5.0
     if tipo=='assoluta':
         arianna="""
         {
                    type: 'rect',
                    xref: 'x',
                    yref: 'y',
-                   x0: """+str(float(cfg.posatt[1])/10.0)+""",
-                   y0: """+str(float(cfg.posatt[2])/10.0)+""",
-                   x1: """+str(float(cfg.posatt[1])/10.0+10.0)+""",
-                   y1: """+str(float(cfg.posatt[2])/10.0+10.0)+""",
+                   x0: """+str(float(cfg.posatt[2])/10.0)+""",
+                   y0: """+str(float(cfg.posatt[3])/10.0)+""",
+                   x1: """+str(float(cfg.posatt[2])/10.0+10.0)+""",
+                   y1: """+str(float(cfg.posatt[3])/10.0+10.0)+""",
                    line: {
                      color: 'rgb(0, 0, 255)',
                      width: 3
@@ -591,12 +592,12 @@ def mappa_seg(mappauso=cfg.mappa,tipo="assoluta",linee=[]):
                    fillcolor: 'rgba(0, 0, 255, 0.7)'
                  }
         """
-        centro_arix=float(cfg.posatt[1])/10.0+5.0
-        centro_ariy=float(cfg.posatt[2])/10.0+5.0
+        centro_arix=float(cfg.posatt[2])/10.0+5.0
+        centro_ariy=float(cfg.posatt[3])/10.0+5.0
         
         raggio_ari=5.0
-        occhio_ariannax=catetobase(raggio_ari,float(cfg.posatt[3]))+centro_arix
-        occhio_ariannay=catetoalt(raggio_ari,float(cfg.posatt[3]))+centro_ariy
+        occhio_ariannax=catetobase(raggio_ari,float(cfg.posatt[4]))+centro_arix
+        occhio_ariannay=catetoalt(raggio_ari,float(cfg.posatt[4]))+centro_ariy
         #print("centri",catetobase(raggio_ari,float(cfg.posatt[3])),catetoalt(raggio_ari,float(cfg.posatt[3])))
         direzione="""
         ,{
@@ -691,7 +692,7 @@ def mappa_seg(mappauso=cfg.mappa,tipo="assoluta",linee=[]):
 def controlla_new_pos(a, f):
     if len(a)<3 or len(f)<3:
         return False
-    if a[1]==f[1] and a[2]==str(float(f[2])*cfg.invx) and a[3]==f[3] and a[5]==f[5]:
+    if a[2]==f[2] and a[3]==str(float(f[3])*cfg.invx) and a[4]==f[4] and a[6]==f[6]:
         return False
     else:
         return True

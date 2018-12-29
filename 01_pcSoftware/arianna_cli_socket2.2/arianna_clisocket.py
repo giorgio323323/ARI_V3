@@ -1,6 +1,20 @@
 #!/usr/bin/python
 # -*- coding: Latin-1 -*-
 '''
+    29dic2018
+        cambio gestione risposta pos in
+        risposta = "pos:"            +\
+                String(millis())        +";"+\
+                String(inputString.substring(2)) ;   id univoco
+                String(xpos)            +";"+\ 
+                String(ypos)            +";"+\
+                String(teta)             +";"+\
+                String(tetaCompass)     +";"+\
+                String(statoRun)         +";"+\
+                String(raggiorSterzo)     +";"+\
+                String(errore)            +";"+\
+                String(vl53dist)        +";"+\
+                
 Created on 21/set/2017
 
 @author: a.airaghimessaggiesptx
@@ -78,16 +92,16 @@ while attcom==0:
             ipclient=a
             attesa_arianna=0
             TCP_PORT = 81
-            BUFFER_SIZE = 256
+            BUFFER_SIZE = 64
             attcom=1
         cont+=1
         if cont>1:
             simu=0
             print("vado in simulazione")
     elif simu==2:
-        ipclient="0.0.0.0"
+        ipclient="192.168.1.210"
         TCP_PORT = 81
-        BUFFER_SIZE = 256
+        BUFFER_SIZE = 64
         attcom=1
         
 try:
@@ -113,10 +127,11 @@ class comunicazione_daari(threading.Thread):
             time.sleep(0.2)
     
     def risp_ari(self,messaggio):   #acquisizione risposte da arianna, da mettere nella coda giusta
-        #s.settimeout(2)
+        s.settimeout(0)
         try:
             raw_bytestream = s.recv(BUFFER_SIZE)      #metto nella coda di ricezione le info di arduino
             messaggio+=str(raw_bytestream)
+            
         except Exception as msg:
             if str(msg).find("[WinError 10035]")<0:
                 messaggio=''
@@ -130,7 +145,7 @@ class comunicazione_daari(threading.Thread):
             cfg.time_radar=2
             arianna_utility.prt("timeout radar",3,my_gui)
         for m in mex[0]:
-            #arianna_utility.prt(str(m),3,my_gui)
+            arianna_utility.prt(str(m),3,my_gui)
             if m[0:3]=='ost' and m[0:4]!='osta':
                 cfg.dist_libera=int(m.split(";")[1])
             if m[0:3]=='mis':
@@ -141,12 +156,13 @@ class comunicazione_daari(threading.Thread):
             elif m[0:3]=='pos':
                 newpos=arianna_utility.deco_pos(str(m))
                 try:
-                    if newpos[8] in cfg.richieste_pos and newpos[8]!='':
+                    if newpos[1] in cfg.richieste_pos and newpos[1]!='':
                         if arianna_utility.controlla_new_pos(cfg.posatt, newpos):
                             cfg.posatt=newpos
-                            cfg.posatt[2]=str(float(cfg.posatt[2])*cfg.invx)
+                            cfg.posatt[3]=str(float(cfg.posatt[3])*cfg.invx)
+                            cfg.richieste_pos=[]
                         arianna_utility.prt('newpos'+str(newpos),2,my_gui)
-                        if str(newpos[5])=='0':
+                        if str(newpos[6])=='0':
                             arianna_utility.prt("arianna ferma",2,my_gui)
                             cfg.stato[0]=0  #sblocco successivi movimenti
                             cfg.richieste_pos=[]
@@ -154,7 +170,7 @@ class comunicazione_daari(threading.Thread):
                     pass;
                 cfg.messaggiesppos.put(m)
                 #print('m1',m)
-                arianna_utility.prt(m, 2, my_gui)
+                #arianna_utility.prt(m, 2, my_gui)
             elif m[0:4]=='echo':
 
                 cfg.messaggiesprx.put(m)
@@ -209,7 +225,7 @@ class comunicazione_perari (threading.Thread):
                 except:
                     print("errore coda mov")
                 
-                time.sleep(1.5)
+                time.sleep(2)
 
                 
             time.sleep(0.1)
@@ -239,7 +255,7 @@ class comunicazione_perari (threading.Thread):
                 cfg.stato[0]=1
                 cfg.messaggiesptx.put('xx')
             if mystring.find("3A")>=0:   #attesa
-                angnew=arianna_utility.minimoangolo(float(cfg.posatt[3]), float(mystring[2:]))
+                angnew=arianna_utility.minimoangolo(float(cfg.posatt[4]), float(mystring[2:]))
                 mystring="3A"+str(angnew)
             mystring="!"+mystring+"?"
             #arianna_utility.prt(mystring,1,my_gui)
@@ -284,7 +300,7 @@ class elabora (threading.Thread):
                 newpos=arianna_utility.deco_pos(str(posxyt))
                 if arianna_utility.controlla_new_pos(cfg.posatt, newpos):
                     cfg.posatt=newpos
-                    cfg.posatt[2]=str(float(cfg.posatt[2])*cfg.invx)
+                    cfg.posatt[3]=str(float(cfg.posatt[3])*cfg.invx)
 
             self.elaborarich()
     
@@ -302,22 +318,10 @@ class elabora (threading.Thread):
            
             destinazione=cfg.percorsi.get()
             if destinazione[1][2]=='3R3' or destinazione[1][2]=='3R1':
-                cfg.messaggirx.put((time.time(),destinazione[1][3]))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),destinazione[1][4]))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),destinazione[1][0]))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),destinazione[1][2]))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),'1r'))
-                time.sleep(0.1)
+                arianna_utility.elencocmd([destinazione[1][3],destinazione[1][4],destinazione[1][0],destinazione[1][2],'1r'])
                 statosmf.release()  
                 semaelabora.release() 
                 return
-            
-                
-            
 
             if cfg.dist_libera<=50 and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)==0:
                 print("davanti non posso andare cosa faccio?")
@@ -331,18 +335,7 @@ class elabora (threading.Thread):
                 nuovoangolo=90-int(cfg.ultimo_angolo_libero[0])
                 print("calcolo via di fuga ",nuovoangolo)  
                 cfg.percorsi.put(destinazione)
-                cfg.messaggirx.put((time.time(),'3A'+str(math.degrees(float(cfg.posatt[3]))+nuovoangolo)))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),'3R6'))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),'1r'))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),'3D'+str(int(cfg.ultimo_angolo_libero[1])*10-500)))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),'3R4'))
-                time.sleep(0.1)
-                cfg.messaggirx.put((time.time(),'1r'))
-                time.sleep(0.1)
+                arianna_utility.elencocmd(['3A'+str(math.degrees(float(cfg.posatt[4]))+nuovoangolo),'3R6','1r','3D'+str(int(cfg.ultimo_angolo_libero[1])*10-500),'3R4','1r'])
                 cfg.ultimo_angolo_libero=[]
                 statosmf.release()
                 semaelabora.release()
@@ -354,20 +347,14 @@ class elabora (threading.Thread):
                 destinazione[1][2]='3R4'
                 a[2]='3R4'
                 b=['3A'+str(ang),'3R6','1r']
-                for cmd in b:
-                    cfg.messaggirx.put((time.time(),cmd))
-                    time.sleep(0.1)
+                arianna_utility.elencocmd(b)
                 
             if (dist<100 ):  #se la distanza è minore di 10 cm mi considero arrivato , mettere parametro?
                 cfg.stato[0]=0
 
             else:
                 cfg.percorsi.put(destinazione)
-                for cmd in a:
-                    cfg.messaggirx.put((time.time(),cmd))
-                    time.sleep(0.1)
-                    
-                    
+                arianna_utility.elencocmd(a)
             #cfg.percorsi.put(destinazione)
         statosmf.release()
         semaelabora.release()
@@ -396,28 +383,13 @@ class mappa (threading.Thread):
                 time.sleep(0.1)
             
 # **********param default****
-cfg.stato[0]=1
-cfg.messaggirx.put((time.time(),'>p9600'))
-time.sleep(0.2)
-
-
+cfg.stato[0]=0
 
 if cfg.par_ini_car==1:
-
-    cfg.messaggirx.put((time.time(),'3F'+cfg.ED))
-    time.sleep(0.2)
-    cfg.messaggirx.put((time.time(),'3F1'+cfg.ED_BASE))
-    time.sleep(0.2)
-    cfg.messaggirx.put((time.time(),'3F2'+cfg.BASELINE))
-    time.sleep(0.2)
     temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
-    print ("comandi vari inseriti")
-    cfg.messaggirx.put((time.time(),'3F3'+str(temp)))
-    time.sleep(0.5)
-    cfg.messaggirx.put((time.time(),'3K0'+str(cfg.K0)))
-    time.sleep(0.5)
-    cfg.messaggirx.put((time.time(),'3E3'))
-time.sleep(0.5)
+    arianna_utility.elencocmd(['3F'+cfg.ED,'3F1'+cfg.ED_BASE,'3F2'+cfg.BASELINE,'3F3'+str(temp),'3K0'+str(cfg.K0),'3E3'])
+
+time.sleep(0.2)
 cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
 time.sleep(0.2)
 cfg.id_radar=arianna_utility.idmap()
