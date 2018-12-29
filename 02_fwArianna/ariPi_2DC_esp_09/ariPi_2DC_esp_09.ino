@@ -1,11 +1,12 @@
-#define V_FW_ATMEGA  "3.05.01"
+#define V_FW_ATMEGA  "3.05.02"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
-    27dic18 3.05.01
+    27dic18 3.05.02
 		valore default KpTeta da 0.8 a 8
 		baco: caricava KpTeta con valore di default in firstRun
 		rimossa risposta "mis:"
 		rimosso cmd 'B', il sensore ostacolo si autodetecta
+		aggiornata stringa di risposta a comando 'p'
 
 	24dic18 3.05.00
 		aggiunto vl53 per la gestione ostacoli, ritorna ost come segnale  per non creare confusione con lidar, aggiunto parametro lidar
@@ -294,7 +295,7 @@ aggiustare le dirVx = 0 gestite in odometro
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345); //ID_009
 
-Servo servoPan;       // create servo object to control a servo
+Servo servoPan;       	// create servo object to control a servo
 Servo servoTilt;        // create servo object to control a servo
 
 
@@ -305,11 +306,11 @@ Servo servoTilt;        // create servo object to control a servo
 //creo tfmini
 TFMini  tfmini;
 
-String  inputString     = "";
-String  inputStringTmp    = "";
-int   okcomm        = 0;
+String  inputString     	= "";
+String  inputStringTmp    	= "";
+int   	okcomm        		= 0;
 static  String risposta;
-char  port        = 0;
+char  	port        		= 0;
 
 //**********fine ID_002
 
@@ -333,38 +334,38 @@ const int MTR_B_SX_P2   = 10; /*!< output pin 2 for left motor */
 
 
 int motorSpeedRef   = 0;
-int direzione     = 1;
-int dirVA     = 1;    // ID_005
-int dirVB     = 1;
+int direzione     	= 1;
+int dirVA     		= 1;    // ID_005
+int dirVB     		= 1;
 
-int VB_zero     = 0;
-int VA_zero     = 0;
-
-
-#define SERVO_PAN_PIN     45      ///< Digital IO pin connected to the servo pin.
-#define SERVO_TILT_PIN    44      ///< Digital IO pin connected to the servo pin.
-
-#define GIRO_DX_PIN     3     ///< encoder  rotazione albero motore ID_009
-#define GIRO_SX_PIN     2     ///< encoder  rotazione albero motore ID_009
-
-#define R_SIDE_FRONT    29    ///< sensore frontale Dx      Low = ostacolo
-#define L_SIDE_FRONT    31    ///< sensore frontale Sx
-#define ENB_R_SIDE_FRONT  28    ///< abilita sensore frontale Dx. High = Enable
-#define ENB_L_SIDE_FRONT  30    ///< abilita frontale Sx
-#define LED1        34    ///< LED1
-#define LED2        33    ///< LED2
-#define LED3        32    ///< LED3
+int VB_zero     	= 0;
+int VA_zero     	= 0;
 
 
+#define SERVO_PAN_PIN     	45	///< Digital IO pin connected to the servo pin.
+#define SERVO_TILT_PIN    	44  ///< Digital IO pin connected to the servo pin.
+
+#define GIRO_DX_PIN     	3   ///< encoder  rotazione albero motore ID_009
+#define GIRO_SX_PIN     	2   ///< encoder  rotazione albero motore ID_009
+
+#define R_SIDE_FRONT    	29  ///< sensore frontale Dx      Low = ostacolo
+#define L_SIDE_FRONT    	31  ///< sensore frontale Sx
+#define ENB_R_SIDE_FRONT  	28  ///< abilita sensore frontale Dx. High = Enable
+#define ENB_L_SIDE_FRONT  	30  ///< abilita frontale Sx
+#define LED1        		34  ///< LED1
+#define LED2        		33  ///< LED2
+#define LED3        		32  ///< LED3
 
 
-#define ledPin        13    ///< led segnalazioni varie su Arduino
-#define laserPin      8   ///< porta puntatore laser
 
-#define  TEST_MOTORE      0   ///< modalità di test per fasi di debug
-#define  TEST_STERZO      1   ///< modalità di test per fasi di debug
-#define  TEST_SENSORS     2   ///< modalità di test per fasi di debug
-#define  TEST_CONTROLLO   3   ///< modalità di test per fasi di debug
+
+#define ledPin        		13  ///< led segnalazioni varie su Arduino
+#define laserPin      		8   ///< porta puntatore laser
+
+#define  TEST_MOTORE      	0  	///< modalità di test per fasi di debug
+#define  TEST_STERZO      	1   ///< modalità di test per fasi di debug
+#define  TEST_SENSORS     	2   ///< modalità di test per fasi di debug
+#define  TEST_CONTROLLO   	3   ///< modalità di test per fasi di debug
 #define  TEST_GIRO_SENSOR   4   ///< modalità di test per fasi di debug
 
 long odometroCnt, odometroDxCnt, odometroSxCnt;     ///< contatori encoder
@@ -372,148 +373,97 @@ long odometroCnt, odometroDxCnt, odometroSxCnt;     ///< contatori encoder
 char firstRun;
 
 
-#define TEMPO_CONTROLLO 25      ///< tempo del controllo sterzo, posizione etc in ms
-
-/*  V = w*r -> w=V/raggio di curvatura
-  a larghezza tra due ruote
-  V1 = V*(r+a/2)/r = V(1 + a/2r)
-
-*/
+#define TEMPO_CONTROLLO 	25  ///< tempo del controllo sterzo, posizione etc in ms
 
 
-/*
-#ifdef ARI2
-  // arianna 2 ruota sx 70 diametro
-  //           ruota dx 69 diametro
-  // encoder 20 ppr
-  #define GIRO_RUOTA        2.728   //  20ppr 5.25 // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-  #define GIRO_RUOTA_DX     2.719074  // 2.7083 //  20ppr 5.25
-  #define GIRO_RUOTA_SX     2.736926  //2.7275 //  20ppr 5.25
-  #define MIN_TIME_TRA_PULSE    18  // tempo minimo tra impulsi encoder per evitare errate letture
+float ED      		= 1.0;    	///< definiscono la meccanica del robot. descrizione nella parte cinematica 
+float ED_BASE     	= 1.0;    	///< definiscono la meccanica del robot. descrizione nella parte cinematica  
+float BASELINE    	= 130.0;  	///< larghezza carreggiata in [mm]. descrizione nella parte cinematica  
+float LAGHEZZA_A_MEZZI = 0.065; ///< larghezza meta' carreggiata in [m]. descrizione nella parte cinematica  
 
-  #define BASELINE      129.826 //150.0 // carreggiata
-//  #define LAGHEZZA_A_MEZZI  0.065 //0.09  // mezza carreggiata (larghezza delle due ruote)
-#endif
+float GIRO_RUOTA_SX = 1.0;    	///< [mm per impulso*0.5]  sviluppo ruota[mm]/(2*ppr) (pulses per revolution)]. descrizione nella parte cinematica  
+float GIRO_RUOTA_DX = 1.0;    	///< [mm per impulso*0.5]  sviluppo ruota[mm]/(2*ppr) (pulses per revolution)]. descrizione nella parte cinematica  
+float GIRO_RUOTA  = 1.0;    	///< (GIRO_RUOTA_SX + GIRO_RUOTA_DX)/2. descrizione nella parte cinematica  
 
-#ifdef ARI3
-  // arianna 3 ruota 47 diametro
-  // encoder 35 ppr
-  //#define ED 0.95 //0.972891
-  //#define GIRO_RUOTA      1.131     // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-  //#define GIRO_RUOTA_SX       GIRO_RUOTA*2.0/(1.0+ED)
-  //#define GIRO_RUOTA_DX       GIRO_RUOTA*2.0/(1.0+1.0/ED)
-  //#define GIRO_RUOTA_SX       1.1465408
-  //#define GIRO_RUOTA_DX       1.1154592
-  //#define MIN_TIME_TRA_PULSE    9     // unsigned long  20 ppr 18 // tempo minimo tra impulsi encoder per evitare errate letture
-
-  //#define BASELINE        137.817     // carreggiata
-//  #define LAGHEZZA_A_MEZZI  0.069     // mezza carregiata (larghezza delle due ruote)
-#endif
-*/
-float ED      = 1.0;    /*!< definiscono la meccanica del robot. descrizione nella parte cinematica */
-float ED_BASE     = 1.0;    /*!< definiscono la meccanica del robot. descrizione nella parte cinematica  */
-float BASELINE    = 130.0;  /*!< larghezza carreggiata in [mm]. descrizione nella parte cinematica  */
-float LAGHEZZA_A_MEZZI = 0.065; /*!< larghezza meta' carreggiata in [m]. descrizione nella parte cinematica  */
-
-float GIRO_RUOTA_SX = 1.0;    /*!< [mm per impulso*0.5]  sviluppo ruota[mm]/(2*ppr) (pulses per revolution)]. descrizione nella parte cinematica  */
-float GIRO_RUOTA_DX = 1.0;    /*!< [mm per impulso*0.5]  sviluppo ruota[mm]/(2*ppr) (pulses per revolution)]. descrizione nella parte cinematica  */
-float GIRO_RUOTA  = 1.0;    /*!< (GIRO_RUOTA_SX + GIRO_RUOTA_DX)/2. descrizione nella parte cinematica  */
-
-unsigned long MIN_TIME_TRA_PULSE = 9;     /*!< tempo minimo tra impulsi encoder per evitare errate letture [ms]
-
-
-// aggiorno per encoder da 35 ppr prima erano 20
-/*
-ari 1 con encoder da 20 ppr
-#define GIRO_RUOTA        2.625 //  20ppr 5.25 // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-#define GIRO_RUOTA_DX     2.625 //  20ppr 5.25
-#define GIRO_RUOTA_SX     2.615 //  20ppr 5.25
-#define MIN_TIME_TRA_PULSE    9 //  20 ppr 18 // tempo minimo tra impulsi encoder per evitare errate letture
-*/
-/*
-ari 1 con encoder da 35 ppr
-#define GIRO_RUOTA        1.5     //  35ppr // mm per impulso*0.5 = sviluppo ruota[mm]/ppr (pulsi per rivoluzione)
-#define GIRO_RUOTA_DX     1.5     //  35ppr
-#define GIRO_RUOTA_SX     1.494   //  35ppr
-#define MIN_TIME_TRA_PULSE   5    //  35ppr tempo minimo tra impulsi encoder per evitare errate letture
-*/
+unsigned long MIN_TIME_TRA_PULSE = 9;     ///< tempo minimo tra impulsi encoder per evitare errate letture [ms]
 
 
 #define E_POSIZIONAMENTO    10    ///< [mm], distanza dall'obbiettivo dove il robot si arresta
-#define E_APPROCCIO     300   ///< [mm], distanza dall'obbiettivo dove il robot inizia a rallentare
+#define E_APPROCCIO     	300   ///< [mm], distanza dall'obbiettivo dove il robot inizia a rallentare
 
 /*
   MODERATA    è il pwm di movimento normale
   APPROCCIO     durante l'avvicinamento alla poszione
   ACCELERAZIONE   nella fase del partenza
 */
-#define FERMO     0     ///< valore pwm di uscita durante stato di FERMO
-#define MODERATA    190     ///< valore pwm di uscita durante marcia MODERATA
-#define APPROCCIO   110     ///< valore pwm di uscita durante marcia APPROCCIO
-#define ACCELERAZIONE 160     ///< valore pwm di uscita durante fase accelerazione (non usato)
+#define FERMO     		0 		///< valore pwm di uscita durante stato di FERMO
+#define MODERATA    	190     ///< valore pwm di uscita durante marcia MODERATA
+#define APPROCCIO   	110     ///< valore pwm di uscita durante marcia APPROCCIO
+#define ACCELERAZIONE 	160     ///< valore pwm di uscita durante fase accelerazione (non usato)
 #define AVANTI      0
 #define INDIETRO    1
 
-#define MAX_STERZO  1.0       ///< massimo valore di sterzo. con 1 si ha una ruota ferma e l'altra al doppio della velocita'
+#define MAX_STERZO  1.0       	///< massimo valore di sterzo. con 1 si ha una ruota ferma e l'altra al doppio della velocita'
 
 // parametri lettura e/o scrittura
-int   statoRun    = 0;      ///< macchina a stati del movimento. Definisce anche il tipo controllo guida.
-float   odometro    = 0;      ///< distanza percorsa in mm
-float   distanza    = 0;      ///< distanza da percorrere col prossio Run
-float   raggiorSterzo = 0.0;      ///< raggiorSterzo indica lo scorrimento che applichiamo alle ruote. vedi function differenziale
+int   statoRun    	= 0;      	///< macchina a stati del movimento. Definisce anche il tipo controllo guida.
+float   odometro    = 0;      	///< distanza percorsa in mm
+float   distanza    = 0;      	///< distanza da percorrere col prossio Run
+float   raggiorSterzo = 0.0;    ///< raggiorSterzo indica lo scorrimento che applichiamo alle ruote. vedi function differenziale
 int     lidardist     = 0;      ///< [cm] distanza misurata dal Lidar
 float   errore;
 
 int   motorSpeed    = 0;
 int   motorSpeedValue = MODERATA;
-int   panAngle    = 90;     ///< angolo destinazione del servo Pan
-int   tiltAngle     = 90;   ///< angolo destinazione del servo Tilt
-char  laser       = 0;      ///< stato uscita puntatore laser
-float kp_guida;  			///< guadagno proporzionale per controllo su distanza muro
-float kd_guida;   			///< guadagno derivativo    per controllo su distanza muro
+int   panAngle    	= 90;     	///< angolo destinazione del servo Pan
+int   tiltAngle     = 90;   	///< angolo destinazione del servo Tilt
+char  laser       	= 0;      	///< stato uscita puntatore laser
+float kp_guida;  				///< guadagno proporzionale per controllo su distanza muro
+float kd_guida;   				///< guadagno derivativo    per controllo su distanza muro
 
-float kpTeta;      			///< guadagno proporzionale per controllo su teta
-float kiTeta;     			///< guadagno integrale per controllo su teta
+float kpTeta;      				///< guadagno proporzionale per controllo su teta
+float kiTeta;     				///< guadagno integrale per controllo su teta
 
-float   MAX_S     = 0.2;      ///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
-float   teta      = 0.0;      ///< teta attuale misurato da odometria
-float   xpos, ypos    = 0.0;      ///< x    attuale misurato da odometria
+float   MAX_S     	= 0.2;      ///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
+float   teta      	= 0.0;      ///< teta attuale misurato da odometria
+float   xpos, ypos  = 0.0;      ///< x    attuale misurato da odometria
 float   tetaRef     = 0.0;      ///< y    attuale misurato da odometria
 
-int   distRef     = 60;     ///< distanza riferimento per modo R1/R2           [cm]
-int   distOstacolo    = 51;       ///< distanza dell'Ostacolo per arresto automatico [cm]. N.B. sotto i 50 cm a volte non legge.
-int   divLidar      = 1;      ///< alcune versioni del lidar ritornano in mm altre in cm, uniformiamo a cm
-int   vl53dist      = 999;      ///distanza letta da vl53
-float   tetaMisura    = 0.0;      ///< teta da bussola
+int   distRef     	= 60;     	///< distanza riferimento per modo R1/R2           [cm]
+int   distOstacolo  = 51;       ///< distanza dell'Ostacolo per arresto automatico [cm]. N.B. sotto i 50 cm a volte non legge.
+int   divLidar      = 1;      	///< alcune versioni del lidar ritornano in mm altre in cm, uniformiamo a cm
+int   vl53dist      = 999;    	///distanza letta da vl53
+float tetaMisura    = 0.0;    	///< teta da bussola
 float xc, yc, tetaCompass;      ///< vettori magnetici dalla bussola
 float deltaCompass,tetaCompass_prev, tetaCompassRead;   ///< variabili bussola
 char  modoGuida       = 0;      ///< modalita' di guida: odometro, bussola, misto, fusione ...
-char    bussola;            	///< presenza bussola
-char    sensore_ost;          	///< presenza laser ostacoli VL53L0X, 1 attivo
+char  bussola;            		///< presenza bussola
+char  sensore_ost;          	///< presenza laser ostacoli VL53L0X, 1 attivo
 
-/** coefficienti calibrazione bussola */
-float ox = 21.0;    ///< offset lungo l'asse x. viene ricavato a seguito della calibrazione
-float oy = 3.64;    ///< offset lungo l'asse y. viene ricavato a seguito della calibrazione
-float ky = 1.343376;  ///< guadagno lungo asse y. viene ricavato a seguito della calibrazione
+/** coefficienti calibrazione bussola 
+sono salvati in E2prom */
+float ox = 0.0;    				///< offset lungo l'asse x. viene ricavato a seguito della calibrazione
+float oy = 0.0;    				///< offset lungo l'asse y. viene ricavato a seguito della calibrazione
+float ky = 0.0;  				///< guadagno lungo asse y. viene ricavato a seguito della calibrazione
 
-// temporaneo
+// variabili appoggio
 
-float   VA, VB;
+float VA, VB;
 int   cntStop = 0;
 int   mode = TEST_STERZO;
 char  monitorDati = 0;
-float   i_part = 0;     ///< parte integrale regolatore guida
-float   delta_teta;
-float   deltaS;
-long  spdDxCnt, spdSxCnt; ///< velocità encoder, impulsi per tempo di campionamento
+float i_part = 0;     			///< parte integrale regolatore guida
+float delta_teta;
+float deltaS;
+long  spdDxCnt, spdSxCnt; 		///< velocità encoder, impulsi per tempo di campionamento
 
 
-int   lidarDistance;    ///< distance measured by lidar
-float deltaErrore;    ///< variabili parte derivativa
-float erroreK_1;      ///< variabili parte derivativa
-float DerActive;      ///< variabili parte derivativa
+int   lidarDistance;    		///< distance measured by lidar
+float deltaErrore;    			///< variabili parte derivativa
+float erroreK_1;      			///< variabili parte derivativa
+float DerActive;      			///< variabili parte derivativa
 
-char  occlusoDavanti;   ///< sensore IR anteriore, LOW in presenza di ostacolo
+char  occlusoDavanti;   		///< sensore IR anteriore, LOW in presenza di ostacolo
 
 
 unsigned long   lastTime, lastTimeFast,timeLidar;
@@ -988,18 +938,18 @@ static long exeTime, tInit;
 void odometroDxMisuraHW(void){
 unsigned long pulseTime;
 
-  if ((millis() - pulseTime) < MIN_TIME_TRA_PULSE) return;
-  pulseTime = millis();
+	if ((millis() - pulseTime) < MIN_TIME_TRA_PULSE) return;
+	pulseTime = millis();
 
-  //Serial.println("dx");
-  digitalWrite(ledPin, !digitalRead(ledPin));
+	//Serial.println("dx");
+	digitalWrite(ledPin, !digitalRead(ledPin));
 
-  if (VA_zero) return;    // se tensione zero non conta
+	if (VA_zero) return;    // se tensione zero non conta
 
-  if  (statoRun == 0)          return;
+	if  (statoRun == 0)          return;
 
-  if (dirVA == 1)  odometroDxCnt ++;    // ID_005
-  else             odometroDxCnt --;
+	if (dirVA == 1)  odometroDxCnt ++;    // ID_005
+	else             odometroDxCnt --;
 }
 
 /** @brief vedi Sx
@@ -1007,18 +957,18 @@ unsigned long pulseTime;
 void odometroSxMisuraHW(void){
 unsigned long pulseTime;
 
-  if ((millis() - pulseTime) < MIN_TIME_TRA_PULSE) return;
-  pulseTime = millis();
+	if ((millis() - pulseTime) < MIN_TIME_TRA_PULSE) return;
+	pulseTime = millis();
 
-  //Serial.println("Sx");
-  digitalWrite(ledPin, !digitalRead(ledPin));
+	//Serial.println("Sx");
+	digitalWrite(ledPin, !digitalRead(ledPin));
 
-    if (VB_zero) return;    // se tensione zero non conta
+	if (VB_zero) return;    // se tensione zero non conta
 
-  if  (statoRun == 0) return;
+	if  (statoRun == 0) return;
 
-  if (dirVB == 1)  odometroSxCnt ++;    // ID_005
-  else             odometroSxCnt --;
+	if (dirVB == 1)  odometroSxCnt ++;    // ID_005
+	else             odometroSxCnt --;
 }
 
 
@@ -1178,82 +1128,82 @@ static float deltaC;      // delta cnt
 static int  counter = 0;
 
 
-  // valore complessivo: usato temporaneamente
-  odometro = (odometroDxCnt + odometroSxCnt)*GIRO_RUOTA;
+	// valore complessivo: usato temporaneamente
+	odometro = (odometroDxCnt + odometroSxCnt)*GIRO_RUOTA;
 
-  // calcolo evoluzione nel periodo
+	// calcolo evoluzione nel periodo
 
-  // congelo le letture per lavorare su valori coerenti
+	// congelo le letture per lavorare su valori coerenti
 
-  noInterrupts();
-    letturaDx= odometroDxCnt;
-    letturaSx= odometroSxCnt;
-  interrupts();
+	noInterrupts();
+	letturaDx= odometroDxCnt;
+	letturaSx= odometroSxCnt;
+	interrupts();
 
-  dDxCnt   = letturaDx - DxCnt_k_1;       // delta sx e dx in count
-  dSxCnt   = letturaSx - SxCnt_k_1;
+	dDxCnt   = letturaDx - DxCnt_k_1;       // delta sx e dx in count
+	dSxCnt   = letturaSx - SxCnt_k_1;
 
-  // esporto velocità encoder
-  spdDxCnt = dDxCnt;
-  spdSxCnt = dSxCnt;
+	// esporto velocità encoder
+	spdDxCnt = dDxCnt;
+	spdSxCnt = dSxCnt;
 
-  deltaC   = (dDxCnt + dSxCnt)*GIRO_RUOTA;// avanzamento del centro nel periodo in mm
+	deltaC   = (dDxCnt + dSxCnt)*GIRO_RUOTA;// avanzamento del centro nel periodo in mm
 
-  DxCnt_k_1= letturaDx;             // memoria per prossimo ciclo
-  SxCnt_k_1= letturaSx;
+	DxCnt_k_1= letturaDx;             // memoria per prossimo ciclo
+	SxCnt_k_1= letturaSx;
 
-  // integro teta
-  // delta_teta è la velocità angolare
-  delta_teta =((float)dDxCnt*GIRO_RUOTA_DX - (float)dSxCnt*GIRO_RUOTA_SX)*2.0/BASELINE;
-  teta  += delta_teta;
+	// integro teta
+	// delta_teta è la velocità angolare
+	delta_teta =((float)dDxCnt*GIRO_RUOTA_DX - (float)dSxCnt*GIRO_RUOTA_SX)*2.0/BASELINE;
+	teta  += delta_teta;
 
-  // integro posizioni
-  if (modoGuida == 3) {
-    xpos    +=  deltaC*cos(tetaCompass);
-    ypos    +=  deltaC*sin(tetaCompass);
-  }
-  else{
-    xpos    +=  deltaC*cos(teta);
-    ypos    +=  deltaC*sin(teta);
-  }
-  //  getSensorReading(); // ID_009
+	// integro posizioni
+	if (modoGuida == 3) {
+		xpos    +=  deltaC*cos(tetaCompass);
+		ypos    +=  deltaC*sin(tetaCompass);
+	}
+	else{
+		xpos    +=  deltaC*cos(teta);
+		ypos    +=  deltaC*sin(teta);
+	}
+	//  getSensorReading(); // ID_009
 
-  /* Get a new sensor event */
-  counter ++;
+	/* Get a new sensor event */
+	counter ++;
 
-  if (bussola) mag.getEvent(&event);
+	if (bussola) mag.getEvent(&event);
 
-  // monitor dati
-  if (monitorDati && (counter >=4) ){
-    counter = 0;
-    //risposta  = "dDxCnt; dSxCnt; deltaC; teta; xpos; ypos; i_part;X;Y;Z;"
-    risposta  = "mon;";
-    risposta += (dDxCnt);
-    risposta += (";");
-    risposta += (dSxCnt);
-    risposta += (";");
-    risposta += (deltaC);
-//    risposta += (actualTetaRef);
-    risposta += (";");
-    risposta += (teta);
-    risposta += (";");
-    risposta += (xpos);
-    risposta += (";");
-    risposta += (ypos);
-    risposta += (";");
-    risposta += (i_part);// raggiorSterzo
-    risposta += (";");
-    /* Display the results (magnetic vector values are in micro-Tesla (uT)) */
+	// monitor dati
+	if (monitorDati && (counter >=4) ){
+		counter = 0;
+		//risposta  = "dDxCnt; dSxCnt; deltaC; teta; xpos; ypos; i_part;X;Y;Z;"
+		risposta  = "mon;";
+		risposta += (dDxCnt);
+		risposta += (";");
+		risposta += (dSxCnt);
+		risposta += (";");
+		risposta += (deltaC);
+		//    risposta += (actualTetaRef);
+		risposta += (";");
+		risposta += (teta);
+		risposta += (";");
+		risposta += (xpos);
+		risposta += (";");
+		risposta += (ypos);
+		risposta += (";");
+		risposta += (i_part);// raggiorSterzo
+		risposta += (";");
+		/* Display the results (magnetic vector values are in micro-Tesla (uT)) */
 
-    risposta += event.magnetic.x;
-    risposta += ";";
-    risposta += event.magnetic.y;
-    risposta += ";";
-    risposta += event.magnetic.z;
-    risposta += ";";
-    //    dato += "uT";
-    sendAnswer2(port);
-  }
+		risposta += event.magnetic.x;
+		risposta += ";";
+		risposta += event.magnetic.y;
+		risposta += ";";
+		risposta += event.magnetic.z;
+		risposta += ";";
+		//    dato += "uT";
+		sendAnswer2(port);
+	}
 
 }
 
@@ -1269,11 +1219,30 @@ static int  counter = 0;
     risposta="";
   }
 
+/** @brief richieste: 
+		viene fatta una richiesta. riorna una o più variabili in risposta
+    @param comando
+
+    p: 
+		risposta = "pos:"			+\
+		String(millis())		+";"+\
+		String(xpos)			+";"+\ 
+		String(ypos)			+";"+\
+		String(teta) 			+";"+\
+		String(tetaCompass) 	+";"+\
+		String(statoRun) 		+";"+\
+		String(raggiorSterzo) 	+";"+\
+		String(errore)			+";"+\
+		String(vl53dist)		+";"+\
+		String(inputString.substring(2)) ;
+
+*/
 void richieste(void)
 {
 static float x, y;
         Serial.println("richiesta");
         Serial.println(inputString);
+		
         switch (char(inputString[1])) {
           case 'a':
               risposta = "a: " + String(xpos);
@@ -1313,14 +1282,24 @@ static float x, y;
               risposta = "h-V FW: " + String(V_FW_ATMEGA);
             break;
 
-          case 'p':
-              if (monitorDati) return;
-              digitalWrite(LED1, !digitalRead(LED1));
+			case 'p':
+				if (monitorDati) return;
+				digitalWrite(LED2, !digitalRead(LED2));
 
-              risposta = "pos: "+String(millis())+";"+ String(xpos)+";"+ String(ypos)+";"+ String(teta) + ";" + String(tetaCompass) + ";" + String(statoRun) + ";" + String(raggiorSterzo) + ";" + String(errore)+";"+String(inputString.substring(2)) ;
-            break;
+				risposta = "pos:"			+\
+				String(millis())		+";"+\
+				String(xpos)			+";"+\ 
+				String(ypos)			+";"+\
+				String(teta) 			+";"+\
+				String(tetaCompass) 	+";"+\
+				String(statoRun) 		+";"+\
+				String(raggiorSterzo) 	+";"+\
+				String(errore)			+";"+\
+				String(vl53dist)		+";"+\
+				String(inputString.substring(2)) ;
+				break;
 
-          case 'q':
+			case 'q':
               // eseguo una scansione
               int range_ang1;
               int range_ang2;
@@ -1984,33 +1963,33 @@ int  i = 0;
         break;
 
       case 4: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, kpTeta);
-          if (comando == LEGGI)       EEPROM.get(eeAddress, kpTeta);
-          if (comando == DEFAULT)     kpTeta = 8.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, kpTeta);
+          if (comando == LEGGI)       	EEPROM.get(eeAddress, kpTeta);
+          if (comando == DEFAULT)     	kpTeta = 8.0;
 
             eeAddress += sizeof(float);
         break;
 
       case 5: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, ox);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, ox);
-          if (comando == DEFAULT)     ox = 0.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, ox);
+          if (comando == LEGGI)			EEPROM.get(eeAddress, ox);
+          if (comando == DEFAULT)     	ox = 0.0;
 
             eeAddress += sizeof(float);
         break;
 
       case 6: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, oy);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, oy);
-          if (comando == DEFAULT)     oy = 0.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, oy);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, oy);
+          if (comando == DEFAULT)     	oy = 0.0;
 
             eeAddress += sizeof(float);
         break;
 
       case 7: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, ky);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, ky);
-          if (comando == DEFAULT)     ky = 1.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, ky);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, ky);
+          if (comando == DEFAULT)     	ky = 1.0;
 
             eeAddress += sizeof(float);
         break;
