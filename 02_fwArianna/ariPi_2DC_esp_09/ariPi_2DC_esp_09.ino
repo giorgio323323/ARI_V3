@@ -1,6 +1,11 @@
-#define V_FW_ATMEGA  "3.05.02"
+#define V_FW_ATMEGA  "3.05.03"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
+    03dic19 3.05.03
+		corretto baco su divLidar
+		// preparata aggiunta lidarDistance alla risposta 'p'
+		rimossa E4 e E5 (set dei parametri predefinito)
+
     27dic18 3.05.02
 		valore default KpTeta da 0.8 a 8
 		baco: caricava KpTeta con valore di default in firstRun
@@ -1297,7 +1302,8 @@ static float x, y;
 				String(statoRun) 		+";"+\
 				String(raggiorSterzo) 	+";"+\
 				String(errore)			+";"+\
-				String(vl53dist);
+				String(vl53dist);//	    +";"+\
+//				String(lidarDistance);
 				break;
 
 			case 'q':
@@ -1601,15 +1607,7 @@ static float x, y;
             DataEEprom(3.0);
             printDatiCalibrazione();
           }
-          else if (x == 4.0){
-            DataEEprom(4.0);
-            risposta = "E: DEFAULT ARI02";
-          }
-          else if (x == 5.0){
-            DataEEprom(5.0);
-            risposta = "E: DEFAULT ARI03";
-          }
-          else  risposta = "E0: SCRIVI, E1 LEGGI, E2 DEFAULT, E3 CORRENTI, E4 DEFAULT ARI02, E5 DEFAULT ARI03";
+          else  risposta = "E0: SCRIVI, E1 LEGGI, E2 DEFAULT, E3 CORRENTI";
         break;
 
       /* ID_010
@@ -1643,8 +1641,8 @@ static float x, y;
             risposta = "F3_GIRORUOTA: " + String(GIRO_RUOTA, 6);
             break;
           case '4':
-            divLidar = x;
-            risposta = "div lidar: " + String(divLidar, 6);
+            divLidar = (int)x;
+            risposta = "div lidar: " + String(divLidar);
             break;
         }
         break;
@@ -2039,28 +2037,11 @@ int  i = 0;
 
   // aggiornamento parametri dipendenti
 
-
-  // valori default ARI 02
-  if(comando == 4){
-    GIRO_RUOTA  = 2.728;
-    ED_BASE   = 1.0;
-    ED      = 0.99347735;
-    BASELINE    = 129.826;
-  }
-
-  // valori default ARI 03
-  if(comando == 5){
-    GIRO_RUOTA  = 1.131;
-    ED_BASE   = 1.0;
-    ED      = 0.95;
-    BASELINE  = 130.0;
-  }
-
   GIRO_RUOTA_SX   = GIRO_RUOTA*2.0/(1.0 +      ED*ED_BASE );
   GIRO_RUOTA_DX   = GIRO_RUOTA*2.0/(1.0 + 1.0/(ED*ED_BASE));
 
   LAGHEZZA_A_MEZZI= BASELINE/2000.0;
-  printDatiCalibrazione();
+  //printDatiCalibrazione();
 
 }
 
@@ -2118,6 +2099,10 @@ static int i;
 }
 
 /** @brief libreria lettura lidar
+	viene usata solo dalla funzione di scan..
+	la funzione tfmini.getDistance() aspetta un pacchetto da seriale
+	chiamare tutta lka funzione lidar è inutile
+	da rivedere
 
 */
 String lidar()
