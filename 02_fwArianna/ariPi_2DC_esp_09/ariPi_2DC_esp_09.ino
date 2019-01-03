@@ -1,7 +1,11 @@
-#define V_FW_ATMEGA  "3.05.03"
+#define V_FW_ATMEGA  "3.05.04"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
-    03dic19 3.05.03
+
+	03gen19 3.05.4
+		errato separatore, corretto. String(inputString.substring(2)) +";"+\
+
+    03gen19 3.05.03
 		corretto baco su divLidar
 		// preparata aggiunta lidarDistance alla risposta 'p'
 		rimossa E4 e E5 (set dei parametri predefinito)
@@ -1294,7 +1298,7 @@ static float x, y;
 				
 				risposta = "pos:"			+\
 				String(millis())		+";"+\
-				String(inputString.substring(2)) +"+"+\
+				String(inputString.substring(2)) +";"+\
 				String(xpos)			+";"+\ 
 				String(ypos)			+";"+\
 				String(teta) 			+";"+\
