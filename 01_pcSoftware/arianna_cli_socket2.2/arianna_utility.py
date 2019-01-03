@@ -549,18 +549,18 @@ def trovadistanza(strx):
         if distanza<=cfg.max_dst:
             vett.append(distanza)
             if distanza>100 and len(cfg.ultimo_angolo_libero)==0:
-                cfg.ultimo_angolo_libero=[a[1],distanza]
+                cfg.ultimo_angolo_libero=[str(int(a[1])+cfg.errore_servo),distanza]
             if distanza>100 and cfg.ultimo_angolo_libero[1]<distanza:
-                cfg.ultimo_angolo_libero=[a[1],distanza]
+                cfg.ultimo_angolo_libero=[str(int(a[1])+cfg.errore_servo),distanza]
                 
     
     if len(vett)>=5:
         x=statistics.median(vett)
-        arianna_db.scrivo_db_mappa(a[1],x,'l')
+        arianna_db.scrivo_db_mappa(str(int(a[1])+cfg.errore_servo),x,'l')
         return x,int(a[1])+cfg.errore_servo
     
     else:
-        return -1,int(a[1])
+        return -1,int(str(int(a[1])+cfg.errore_servo))
 
 def approssimocella(i):
     #considero cella =10x10

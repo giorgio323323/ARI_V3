@@ -138,7 +138,7 @@ class comunicazione_daari(threading.Thread):
                 print("errore socket")
                 return messaggio
         mex=arianna_utility.gestiscirisp(messaggio)
-        if (time.time()-cfg.tempo_radar>5 and cfg.time_radar!=0):
+        if (time.time()-cfg.tempo_radar>5 and cfg.time_radar==1):
             if semaelabora._value==0:
                 semaelabora.release()
                 arianna_utility.prt("semaforo rilasciato",3,my_gui)
@@ -419,10 +419,10 @@ thread5.start()
 time.sleep(0.1)
 thread6.start()
 
-#webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
-
-root.mainloop()
+webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
 #apro browser
+root.mainloop()
+
 
 
 print ("Exiting Main Thread")

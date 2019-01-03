@@ -57,7 +57,7 @@ ultima_richiesta_libero=[0,0.0,0.0,0,0,0,0,0,0]
 
 tempo_radar=0 #ogni tanto non sblocco
 
-errore_servo=-10 #aggiusto angolo del servo in quanto non è mai in asse perfetto con arianna
+errore_servo=-10 #aggiusto angolo del servo in quanto non e' mai in asse perfetto con arianna
 
 radar_ini=0
 

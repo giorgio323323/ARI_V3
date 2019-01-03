@@ -10,20 +10,22 @@ import arianna_utility
 
 
 def scrivo_db_mappa(ang,distanza,tipo=''):
-    pox,poy=arianna_utility.pos_fine([float(cfg.posatt[1]),float(cfg.posatt[2]),float(cfg.posatt[3])], float(distanza), float(ang),10)
-    con = lite.connect('arianna.db3', isolation_level=None)  
+    pox,poy=arianna_utility.pos_fine([float(cfg.posatt[2]),float(cfg.posatt[3]),float(cfg.posatt[4])], float(distanza), float(ang),10)
+    con = lite.connect(cfg.localpath+'\\arianna.db3', isolation_level=None)  
     cur = con.cursor()
 
     cur.execute("""insert into radar values(current_timestamp,"""
-                +str(cfg.posatt[1])+""","""
                 +str(cfg.posatt[2])+""","""
-                +str(math.degrees(float(cfg.posatt[3])))+""","""
+                +str(cfg.posatt[3])+""","""
+                +str(math.degrees(float(cfg.posatt[4])))+""","""
                 +str(distanza)+""","""
                 +str(ang)+""","""
                 +str(pox)+""","""
                 +str(poy)+""",'"""
                 +str(cfg.id_radar)+"""','"""
                 +str(tipo)+"""')""")
+
+
 
 def scrivo_db_celle(valore):
     con = lite.connect('arianna.db3', isolation_level=None)  

@@ -20,7 +20,7 @@ def dati():
     t+='<td>posx</td><td>posy</td><td>ang</td>'
     t+='</tr>'
     t+='<tr>'
-    t+='<td>'+str(int(float(cfg.posatt[1])))+'</td><td>'+str(int(float(cfg.posatt[2])))+'</td><td>'+str(int(float(cfg.posatt[3])))+'</td>'
+    t+='<td>'+str(int(float(cfg.posatt[2])))+'</td><td>'+str(int(float(cfg.posatt[3])))+'</td><td>'+str(int(float(cfg.posatt[4])))+'</td>'
     t+='</tr>'
     t+='</table>'
     t+='</body>'
