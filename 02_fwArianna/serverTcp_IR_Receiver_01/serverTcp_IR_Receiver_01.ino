@@ -1,4 +1,4 @@
-#define V_FW_ESP8266	"1.00.02"
+#define V_FW_ESP8266	"!1.00.02?"
 /*@serverTcp_IR_Receiver_o1.ino
  * 	stuffcube.wordpress.com
 
