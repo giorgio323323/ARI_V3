@@ -320,8 +320,26 @@ def intersezione(p1,p2,p3,p4):
     return [0,[0,0]]    
         
         
-        
-def minimoangolo(ap,ar):
+def minimoangolo(ap,ar): 
+    gr_ari=(math.degrees(ap)%360)
+    if ap<0:
+        gr_ari=-1*gr_ari
+    gr_new1=ar
+    if (ar>=0):
+        gr_new2=ar-360
+    else:
+        gr_new2=360-ar  
+    delta=(gr_new1-gr_ari)
+    if (math.fabs((gr_new1-gr_ari))<180):
+        return (math.degrees(ap)+delta)
+    delta=(gr_new2-gr_ari)
+    return (math.degrees(ap)+delta)
+    
+    #devo scegliere se meglio gr_new1 o gr_new2 
+
+
+# da non usare
+def minimoangolo2(ap,ar):
     return ar 
     ap=math.degrees(ap)
     ar_opp=ar-360

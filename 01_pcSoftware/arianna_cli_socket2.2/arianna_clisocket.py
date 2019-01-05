@@ -389,8 +389,8 @@ if cfg.par_ini_car==1:
     temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
     arianna_utility.elencocmd(['3F'+cfg.ED,'3F1'+cfg.ED_BASE,'3F2'+cfg.BASELINE,'3F3'+str(temp),'3K0'+str(cfg.K0),'3E3'])
 
-time.sleep(0.2)
-cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
+    time.sleep(0.2)
+    cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
 time.sleep(0.2)
 cfg.id_radar=arianna_utility.idmap()
 
