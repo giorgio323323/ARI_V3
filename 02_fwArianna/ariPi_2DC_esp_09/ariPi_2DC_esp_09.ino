@@ -1,8 +1,17 @@
-#define V_FW_ATMEGA  "3.05.04"
+#define V_FW_ATMEGA  "3.05.05"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
 
-	03gen19 3.05.4
+	06gen19 3.05.5
+		inserito offset su PAN, F5. Salvato in E2prom
+		test OscilloSscope
+		motorSpeedRef =  108; //MODERATA; troppo veloce eccede. 
+		se tropo pesante non si muove........
+		modificata temporizzazione task.
+			la base è la rampa a 10 ms che incrementa cnt10ms
+			ogni volta che arriva a TEMPO_CONTROLLO viene eseguito
+
+		03gen19 3.05.4
 		errato separatore, corretto. String(inputString.substring(2)) +";"+\
 
     03gen19 3.05.03
@@ -343,6 +352,14 @@ const int MTR_B_SX_P1   = 9;  /*!< output pin 1 for left motor */
 const int MTR_B_SX_P2   = 10; /*!< output pin 2 for left motor */
 
 
+#define nOfSamples	100
+float ch1[nOfSamples]; 
+float ch2[nOfSamples]; 
+float ch3[nOfSamples]; 
+float ch4[nOfSamples]; 
+
+int sampleRate = 0;
+
 int motorSpeedRef   = 0;
 int direzione     	= 1;
 int dirVA     		= 1;    // ID_005
@@ -383,7 +400,7 @@ long odometroCnt, odometroDxCnt, odometroSxCnt;     ///< contatori encoder
 char firstRun;
 
 
-#define TEMPO_CONTROLLO 	25  ///< tempo del controllo sterzo, posizione etc in ms
+#define TEMPO_CONTROLLO 	3   ///< tempo del controllo sterzo, posizione etc in 10ms
 
 
 float ED      		= 1.0;    	///< definiscono la meccanica del robot. descrizione nella parte cinematica 
@@ -450,6 +467,8 @@ char  modoGuida       = 0;      ///< modalita' di guida: odometro, bussola, mist
 char  bussola;            		///< presenza bussola
 char  sensore_ost;          	///< presenza laser ostacoli VL53L0X, 1 attivo
 
+int offsetPan;					///< offset su algolo Pan. Corregge errore allineamento
+
 /** coefficienti calibrazione bussola 
 sono salvati in E2prom */
 float ox = 0.0;    				///< offset lungo l'asse x. viene ricavato a seguito della calibrazione
@@ -476,10 +495,11 @@ float DerActive;      			///< variabili parte derivativa
 char  occlusoDavanti;   		///< sensore IR anteriore, LOW in presenza di ostacolo
 
 
-unsigned long   lastTime, lastTimeFast,timeLidar;
-float     teta_;
-float       actualTetaRef;
-char      SM_R5 = 0;
+unsigned long   lastTimeFast,timeLidar;
+char 			cnt10ms;
+float     		teta_;
+float       	actualTetaRef;
+char      		SM_R5 = 0;
 unsigned long   inizioStabilita; //Timer
 
 
@@ -604,7 +624,7 @@ static long exeTime, tInit;
   getCmd2();              /// gestione comunicazione con ESP
   rSeriale();             /// gestione comunicazione con ESP
 
-  servoPan.write ( panAngle);     /// assegna angoli a pan e tilt
+  servoPan.write ( panAngle + offsetPan );     /// assegna angoli a pan e tilt
   servoTilt.write(tiltAngle);
 
 
@@ -667,17 +687,16 @@ static long exeTime, tInit;
       99: comando arresto
     */
 
-      // parte a 25 ms
-      if ((millis()-lastTime) > TEMPO_CONTROLLO){
+      // parte a 30 ms
+      if ( cnt10ms >= TEMPO_CONTROLLO){
 
+		cnt10ms = 0;
+		
         exeTime = micros() - tInit;
         //Serial.println(lidarDistance);
         tInit = micros();
 
         lidarDistance = tfmini.getDistance()/divLidar;
-
-
-        lastTime = millis();
 
         updatePosition();
         // ID_009 bussola
@@ -788,13 +807,13 @@ static long exeTime, tInit;
               break;
 
             case 1: // rampa salita
-                motorSpeedRef =  MODERATA;
+                motorSpeedRef =  108; //MODERATA;
                 direzione = AVANTI;
 
                 // spazio di fermata 0.5*v*tf
                 //
 
-                if (errore < delta_teta*7.0){
+                if (errore < delta_teta*5.0){  // 7.0
                 // fermo
                   SM_R5     = 3;
                   deltaS      = 10.8;
@@ -803,9 +822,9 @@ static long exeTime, tInit;
 
             case 2: // rampa discesa
 
-                motorSpeedRef =  MODERATA;
+                motorSpeedRef =  108; //MODERATA;
                 direzione = INDIETRO;
-                if (errore > delta_teta*7.0){
+                if (errore > delta_teta*5.0){  // 7.0
                   // fermo
                   SM_R5     = 3;
                   deltaS      = 10.8;
@@ -857,30 +876,38 @@ static long exeTime, tInit;
         else{ // statoRun == 5 or 6 o zero (ruota su se stessa)
           ;
         }
+
+		scope (-1, 0, 1, 2, 3, 4);	// chiamo con cmd=-1, serve per attivare funzione
       }// fine parte temporizzata TEMPO_CONTROLLO ms
 
 
-      /** questa parte genera le rampe sulla tensione del motore. Sia in accelerazione che decelerazione.
-      *   Viene fatta girare con un tempo piu' veloce per poter usare gradini di riferimento più piccoli.
-      *   All'arrivo a velocità zero la macchina a stati del movimento viene messa nello stato iniziale.
-      */
-      if ((millis()-lastTimeFast) > 10){
-        lastTimeFast = millis();
+		/** questa parte genera le rampe sulla tensione del motore. Sia in accelerazione che decelerazione.
+		*   Viene fatta girare con un tempo piu' veloce per poter usare gradini di riferimento più piccoli.
+		*   All'arrivo a velocità zero la macchina a stati del movimento viene messa nello stato iniziale.
+		*   Genera il tick per il cilco di controllo
+		*/
+		if ((millis()-lastTimeFast) > 10){
+			lastTimeFast = millis();
+			
+			cnt10ms++; // counter per ciclo controllo
+			
+			if (statoRun == 99) motorSpeedRef = 0;
 
-        if (statoRun == 99) motorSpeedRef = 0;
+			// rampa sulla velocita'
+			if (motorSpeedRef > motorSpeed) motorSpeed += 2;
+			if (motorSpeedRef < motorSpeed) motorSpeed -= 4;  // 15
 
-        // rampa sulla velocita'
-        if (motorSpeedRef > motorSpeed) motorSpeed += 2;
-        if (motorSpeedRef < motorSpeed) motorSpeed -= 4;  // 15
+			if (motorSpeed > 250) motorSpeed = 250;
+			if ((motorSpeed <   1)&&(statoRun == 99)){
+				motorSpeed = 0;
+				statoRun   = 0;
+			}
+				
+			differenziale(motorSpeed);	
+		}
 
-        if (motorSpeed > 250) motorSpeed = 250;
-        if ((motorSpeed <   1)&&(statoRun == 99)){
-          motorSpeed = 0;
-          statoRun   = 0;
-        }
-      }// fine temporizzata veloce
 
-      differenziale(motorSpeed);
+
 
   }
 
@@ -1292,6 +1319,15 @@ static float x, y;
               risposta = "h-V FW: " + String(V_FW_ATMEGA);
             break;
 
+			
+			// ixyyyy
+			// x: comando
+			// y: argomento comando
+			case 'i':
+				scope( char(inputString[2]), inputString.substring(3).toInt(),0,0,0,0);
+				
+            break;
+
 			case 'p':
 				if (monitorDati) return;
 				digitalWrite(LED2, !digitalRead(LED2));
@@ -1404,20 +1440,21 @@ static float x, y;
 
     Ex: EEprom.  Esegue operazioni su dei parametri di taratura. Vedi procedura DataEEprom.
 
-      E0 SCRIVI i parametri in E2prom,
-      E1 LEGGI i parametri in E2prom,
-      E2 rispristina in valori di DEFAULT,
-      E3 mostra i parametri CORRENTI,
-      E4 carica i valori di DEFAULT per il modello ARI02,
-      E5 carica i valori di DEFAULT per il modello ARI03,
+		E0 SCRIVI i parametri in E2prom,
+		E1 LEGGI i parametri in E2prom,
+		E2 rispristina in valori di DEFAULT,
+		E3 mostra i parametri CORRENTI,
+		E4 carica i valori di DEFAULT per il modello ARI02,
+		E5 carica i valori di DEFAULT per il modello ARI03,
 
     Fnxxx: imposta dei parametri del robot. "n" indica quale parametro, "xxx" è il valore.
 
-      F0xx ED
-      F1xx ED_BASE
-      F2xx BASELINE   mm
-      F3xx GIRO_RUOTA   mm  = sviluppo ruota[mm]/(4*ppr)
-      F4xx Divisore lidar
+		F0xx ED
+		F1xx ED_BASE
+		F2xx BASELINE   mm
+		F3xx GIRO_RUOTA   mm  = sviluppo ruota[mm]/(4*ppr)
+		F4xx Divisore lidar
+        F5xx offest servo Pan
 
       N.B. questi valori vanno attivati con un 3E3
 
@@ -1623,6 +1660,7 @@ static float x, y;
         F2xx BASELINE
         F3xx GIRO_RUOTA
         F4xx Divisore lidar
+        F5xx offest servo Pan
 
       */
       case 'F':
@@ -1647,6 +1685,10 @@ static float x, y;
           case '4':
             divLidar = (int)x;
             risposta = "div lidar: " + String(divLidar);
+            break;
+          case '5':
+            offsetPan = (int)x;
+            risposta = "offset Pan: " + String(offsetPan);
             break;
         }
         break;
@@ -1910,17 +1952,19 @@ static int numero = 0;
 void DataEEprom(char comando){
 /*
 assegnamento dati in e2prom
-0 ED_BASE   f
+0 	ED_BASE   f
 1   ED      f
 2   BASELINE  f
 3   giroRuota f
-4 kpTeta    f
-5 ox      f
-6 oy      f
-7 ky      f
-8 kiTeta    f
-9 kp_guida  f
+4 	kpTeta    f
+5 	ox      f
+6 	oy      f
+7 	ky      f
+8 	kiTeta    f
+9 	kp_guida  f
 10  kd_guida  f
+11	divLidar	i
+12	offsetPan	i
 
 ID_010
 */
@@ -1934,17 +1978,17 @@ int  i = 0;
     switch (i) {
 
       case 0: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, ED);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, ED);
-          if (comando == DEFAULT)     ED = 1.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, ED);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, ED);
+          if (comando == DEFAULT)     	ED = 1.0;
 
             eeAddress += sizeof(float); //Move address to the next byte after float 'f'.
         break;
 
       case 1: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, ED_BASE);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, ED_BASE);
-          if (comando == DEFAULT)     ED_BASE = 1.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, ED_BASE);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, ED_BASE);
+          if (comando == DEFAULT)     	ED_BASE = 1.0;
 
             eeAddress += sizeof(float);
         break;
@@ -1998,38 +2042,46 @@ int  i = 0;
         break;
 
       case 8: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, kiTeta);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, kiTeta);
-          if (comando == DEFAULT)     kiTeta = 0.2;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, kiTeta);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, kiTeta);
+          if (comando == DEFAULT)     	kiTeta = 0.2;
 
             eeAddress += sizeof(float);
         break;
 
       case 9: //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, kp_guida);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, kp_guida);
-          if (comando == DEFAULT)     kp_guida = 0.5;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, kp_guida);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, kp_guida);
+          if (comando == DEFAULT)     	kp_guida = 0.5;
 
             eeAddress += sizeof(float);
         break;
 
       case 10:  //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, kd_guida);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, kd_guida);
-          if (comando == DEFAULT)     kd_guida = 40.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, kd_guida);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, kd_guida);
+          if (comando == DEFAULT)     	kd_guida = 40.0;
 
             eeAddress += sizeof(float);
         break;
 
       case 11:  //
-          if (comando == SCRIVI)      EEPROM.put(eeAddress, divLidar);
-          if (comando == LEGGI)     EEPROM.get(eeAddress, divLidar);
-          if (comando == DEFAULT)     divLidar = 1.0;
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, divLidar);
+          if (comando == LEGGI)			EEPROM.get(eeAddress, divLidar);
+          if (comando == DEFAULT)     	divLidar = 1;
 
-            eeAddress += sizeof(float);
+            eeAddress += sizeof(int);
         break;
 
       case 12:  //
+          if (comando == SCRIVI)      	EEPROM.put(eeAddress, offsetPan);
+          if (comando == LEGGI)     	EEPROM.get(eeAddress, offsetPan);
+          if (comando == DEFAULT)     	offsetPan = 0;
+
+            eeAddress += sizeof(int);
+        break;
+
+      case 13:  //
           endList = 1;
         break;
 
@@ -2245,3 +2297,132 @@ void compass(void){
   tetaCompass -= deltaCompass;
 }
 
+
+/** @brief campiona variabili e le mette in array. Possono essere lettera
+	successivamente.
+
+	@param cmd: indica cosa fare
+				-1:  attiva solo parte di acquisizione
+				'0': init, 	inizializza variabili
+				'1': run		attiva registrazione, esauriti i campioni si arresta. 
+							lo sstato va a -1
+				'2': trg		attende l'evento di trigger cha avvia l'acquisizione
+				
+	@param argomento: eventuale argomento del comando
+		
+	@param ch1n, .. : indice canale da campionare
+  
+	@return 	stato acquisizione:
+				-1: finita
+			
+	sequenza d'uso
+	
+	1i5x	x è un intero che fissa il tempo tra due campioni. la formula è tSample = 30ms*(x+1)
+			iniviando 0 acquisisco ogni 30 ms. I campioni sono 100
+	1i0		inizialliza lo scope
+	1i1		avvia l'acquisizione
+	1i2		ritorna lo stato acquisizione. 
+			4 indica acquisizione finita. 
+			1 in corso
+	1i3		ritorna il numero di campioni acquisiti
+	
+	i9nnn	ritorna una stringa con i valori registrati al campione nnn.
+			nnn va da 0 a 99
+			scp:0.00;0.00;0.00;1107021.00
+		
+	1i0
+	scp:init
+	1i510
+	scp:decimation= 10
+	1i1
+	scp:statAcd
+	1i2
+	scp:statoScope= 1
+	1i2
+	scp:statoScope= 4
+	for indice=0 to 99
+		1i9indice
+		ritorna scp:0.00;0.00;0.00;1069919.00
+		splitta e metti su file
+
+*/
+
+int scope(char cmd, int argomento, int ch1n, int ch2n, int ch3n, int ch4n){
+
+static int testa, statoScope, startIndex;
+static int sampleAcquired, decimation, decimationCounter;
+	
+	if (cmd != -1){
+		// init
+		if (cmd=='0'){
+			testa = 0;
+			statoScope = 0;
+			risposta =  "scp:init";
+		}
+		
+		// start acquisizione
+		if (cmd=='1'){
+			statoScope = 1;
+			startIndex = testa;
+			sampleAcquired = 0;
+			decimationCounter = decimation;
+			risposta =  "scp:statAcd";
+		}
+		
+		// chiedo stato
+		if (cmd=='2' ){
+			risposta =  "scp:statoScope= " + String(statoScope);
+		}
+		
+		if (cmd=='3' ){
+			risposta =  "scp:testa= " + String(testa);
+		}
+		
+		// imposta ogni quanti campioni acquisire il segnale
+		if (cmd=='5'){
+			decimation = argomento;
+			risposta =  "scp:decimation= " + String(decimation);
+		}
+	}
+	
+	//read data
+	if(cmd=='9'){
+		if (argomento < nOfSamples){
+		risposta =  "scp:"				+\
+		String(ch1[argomento])		+";"+\
+		String(ch2[argomento])		+";"+\
+		String(ch3[argomento])		+";"+\
+		String(ch4[argomento]);
+		}
+		else risposta =  "scp: indice troppo grosso";				
+	}
+
+	// run
+	if(statoScope == 1){
+		
+		if (decimationCounter == 0)	decimationCounter = decimation;
+		else{
+			decimationCounter--;
+			return(statoScope);
+		}		
+		if (testa >= nOfSamples) testa = 0;
+		
+		ch1[testa] = teta;
+		ch2[testa] = xpos;
+		ch3[testa] = ypos;
+		ch4[testa] = millis();
+		testa++;
+		sampleAcquired++;
+		
+		// teminate l'acquisizione va in stop
+		if (sampleAcquired >= nOfSamples) statoScope = 4;
+	}
+
+	// stop
+	if(statoScope=='4'){
+		;
+	}
+
+	return(statoScope);
+
+}
