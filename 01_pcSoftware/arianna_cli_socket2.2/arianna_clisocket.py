@@ -92,7 +92,7 @@ while attcom==0:
             ipclient=a
             attesa_arianna=0
             TCP_PORT = 81
-            BUFFER_SIZE = 64
+            BUFFER_SIZE = 256
             attcom=1
         cont+=1
         if cont>1:
@@ -101,7 +101,7 @@ while attcom==0:
     elif simu==2:
         ipclient="192.168.1.210"
         TCP_PORT = 81
-        BUFFER_SIZE = 64
+        BUFFER_SIZE = 256
         attcom=1
         
 try:
@@ -255,7 +255,10 @@ class comunicazione_perari (threading.Thread):
                 cfg.stato[0]=1
                 cfg.messaggiesptx.put('xx')
             if mystring.find("3A")>=0:   #attesa
+                print('angtgt',float(mystring[2:]))
+                print("angari",float(cfg.posatt[4]))
                 angnew=arianna_utility.minimoangolo(float(cfg.posatt[4]), float(mystring[2:]))
+                print('angnew',angnew)
                 mystring="3A"+str(angnew)
             mystring="!"+mystring+"?"
             #arianna_utility.prt(mystring,1,my_gui)
@@ -341,14 +344,24 @@ class elabora (threading.Thread):
                 semaelabora.release()
                 return
 
-            a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2])
-            if (destinazione[1][2]=='3R6'):
+            a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2],destinazione[1][3])
+            #===================================================================
+            # if (destinazione[1][2]=='3R6' and dist>100):
+            #     #per r6 faccio prima movimnto a 0 d e angolo e poi cambio in r4
+            #     destinazione[1][2]='3R4'
+            #     destinazione[1][3]='999999'  
+            #     a[2]='3R4'
+            #     b=['3A'+str(ang),'3R6','1r']
+            #     arianna_utility.elencocmd(b)
+            #     a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2],destinazione[1][3])
+            #     destinazione[1][2]='3R6'
+            #     destinazione[1][3]=''  
+            #===================================================================
+            if (destinazione[1][2]=='3R6' and dist>100):
+                print('a',a)
                 #per r6 faccio prima movimnto a 0 d e angolo e poi cambio in r4
-                destinazione[1][2]='3R4'
-                a[2]='3R4'
-                b=['3A'+str(ang),'3R6','1r']
-                arianna_utility.elencocmd(b)
-                
+                a=['3A'+str(ang),'3R6','1r',a[1],'3R4','1r']
+                               
             if (dist<100 ):  #se la distanza è minore di 10 cm mi considero arrivato , mettere parametro?
                 cfg.stato[0]=0
 
@@ -389,8 +402,10 @@ if cfg.par_ini_car==1:
     temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
     arianna_utility.elencocmd(['3F'+cfg.ED,'3F1'+cfg.ED_BASE,'3F2'+cfg.BASELINE,'3F3'+str(temp),'3K0'+str(cfg.K0),'3E3'])
 
-time.sleep(0.2)
-cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
+    time.sleep(0.2)
+    cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
+    time.sleep(0.2)
+    cfg.messaggirx.put((time.time(),'3O101'))
 time.sleep(0.2)
 cfg.id_radar=arianna_utility.idmap()
 

@@ -55,7 +55,6 @@ def elencocmd(elenco,pausa=0.1):
         cfg.messaggirx.put((time.time(),l))
         time.sleep(pausa)
     
-    
 
 #********************funz geometriche e matematiche ****************************************
 def rotazione_punto(x,y,ang=85,ox=0,oy=0):
@@ -105,12 +104,14 @@ def calcola_movimento(angolo,distanza):
     print("target x, y",cx,by)
     return cx,by
 
-def calcola_movimento_inv(x,y,r):
+def calcola_movimento_inv(x,y,r,a):
     dist=distanza_punti([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
     ang=angolo_base([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
     #print("dist,ang",dist,ang)
-    return ['3A'+str(round(ang, 2)),'3D'+str(round(dist, 0)),r,'1r'],dist,ang
-
+    if a!='999999':
+        return ['3A'+str(round(ang, 2)),'3D'+str(round(dist, 0)),r,'1r'],dist,ang
+    else:
+        return ['3D'+str(round(dist, 0)),r,'1r'],dist,ang
 
 def punto_medio_seg(p1,p2):
     xm=(p1[0]+p2[0])/2
@@ -319,27 +320,26 @@ def intersezione(p1,p2,p3,p4):
         return [1,[p0x,p0y]]
     return [0,[0,0]]    
         
-        
-        
 def minimoangolo(ap,ar):
-    return ar 
-    ap=math.degrees(ap)
-    ar_opp=ar-360
-    if ap>0:
-        dst1=abs(ap-ar)
-        dst2=abs(ap-ar_opp)
-        if dst1<=dst2:
-            return(ar)
-        else:
-            return(ar_opp)
+    #riduco angolo nei 360 gradi p = 0|---|360
+    T = ar
+    teta = ap*360/6.28
+    
+    p = teta % 360
+    delta = T -p
+
+    if abs(delta) < 180:
+        trip = delta
     else:
-        dst1=abs(ap-ar)
-        dst2=abs(ap-ar_opp)
-        if dst1<=dst2:
-            return(ar)
+        if delta >0:
+            trip = delta - 360
         else:
-            return(ar_opp)
+            trip = delta + 360
+            
+    target = teta + trip
+    return target
         
+      
 
 #********************funz geometriche e matematiche fine****************************************
 
