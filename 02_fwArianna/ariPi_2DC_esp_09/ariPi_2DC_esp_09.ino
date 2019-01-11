@@ -2388,11 +2388,12 @@ static int sampleAcquired, decimation, decimationCounter;
 	//read data
 	if(cmd=='9'){
 		if (argomento < nOfSamples){
-		risposta =  "scp:"				+\
-		String(ch1[argomento])		+";"+\
-		String(ch2[argomento])		+";"+\
-		String(ch3[argomento])		+";"+\
-		String(ch4[argomento]);
+			risposta = "scp:dati="		+\
+			String(argomento)			+";"+\
+			String(ch1[argomento])		+";"+\
+			String(ch2[argomento])		+";"+\
+			String(ch3[argomento])		+";"+\
+			String(ch4[argomento]);
 		}
 		else risposta =  "scp: indice troppo grosso";				
 	}
