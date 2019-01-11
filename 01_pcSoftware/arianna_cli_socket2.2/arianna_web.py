@@ -21,11 +21,11 @@ class Benvenuto:
     index.exposed = True
 
     def index2(self):
-        return open(cfg.pgmpath+'scheda/index.html')
+        return open(cfg.localpath+'/scheda/index.html')
     index2.exposed = True
     
     def ui2(self):
-        return open(cfg.pgmpath+'scheda/arianna5.0.html')
+        return open(cfg.localpath+'/scheda/arianna5.0.html')
     ui2.exposed = True
     
     def mappa(self):
@@ -33,7 +33,7 @@ class Benvenuto:
         #linee=arianna_db.leggosql([cfg.id_radar],"linee")
         #arianna_utility.mappa_seg(cfg.mappa,"assoluta",linee)
         arianna_utility.mappa_seg(cfg.mappa,"assoluta",'')
-        return open(cfg.pgmpath+'scheda/mappasegok.html')
+        return open(cfg.localpath+'/scheda/mappasegok.html')
     mappa.exposed = True
     
     def risposte(self):
@@ -71,13 +71,13 @@ class Benvenuto:
                 arry=p[1]
                 modo=p[2]
                 poslid='0'
-                cfg.percorsi.put((time.time(),[arrx,arry,modo,poslid]))
+                cfg.percorsi.put((time.time(),[arrx,arry,modo,poslid,modo]))
             elif cod[0:1]=='T':
                 poslid='0'
                 p=cod[1:999].split('|')
                 if p[2] not in ('3R1','3R3'):
                     x,y=arianna_utility.calcola_movimento_teo(int(p[0][2:]), int(p[1][2:]))
-                    cfg.percorsi.put((time.time(),[x,y,p[2],poslid]))
+                    cfg.percorsi.put((time.time(),[x,y,p[2],poslid,p[2]]))
                 else:
                     cfg.percorsi.put((time.time(),[p[1],0,p[2],p[3],p[4]]))
                 #print("da web",p)

@@ -1,6 +1,11 @@
 #!/usr/bin/python
 # -*- coding: Latin-1 -*-
 '''
+    11gen2019
+        attivata coda comandi arianna altro 
+        per gestione comandi non in sincro con il movimento
+    10gen2019
+        modificata gestione movimento salvo tipo moto e lo uso per i movimenti successivi finche non cambia(r4 r6)
     29dic2018
         cambio gestione risposta pos in
         risposta = "pos:"            +\
@@ -116,6 +121,7 @@ except socket.error as msg:
 
         
 class comunicazione_daari(threading.Thread):
+#gestisco qui tutte le comunicazioni provenienti da arianna
     def __init__(self, threadID, name):
         threading.Thread.__init__(self)
         self.threadID = threadID
@@ -123,6 +129,28 @@ class comunicazione_daari(threading.Thread):
     def run(self):
         messaggio=""
         while 1:
+            ###gestione dei timeout di risposta
+            # timeout radar
+            if (time.time()-cfg.tempo_radar>5 and cfg.time_radar==1):
+                if semaelabora._value==0:
+                    semaelabora.release()
+                    arianna_utility.prt("semaforo rilasciato",3,my_gui)
+                cfg.time_radar=2
+                arianna_utility.prt("timeout radar",3,my_gui)
+            #timeout registrazione
+
+            if (time.time()-cfg.tempo_registrazione>10 and cfg.sem_registrazione==1):
+                print("timeout registrazione")
+                arianna_utility.prt("problema registrazione forzo 1i2", 2, my_gui)
+                cfg.messaggiesptx_altro.put('1i2')
+            
+            if (time.time()-cfg.tempo_datiregistrazione>5 and cfg.sem_registrazione==2):
+                a=arianna_utility.test_registrazione()
+                arianna_utility.prt("problema registrazione forzo 1i2", 2, my_gui)
+                
+
+###gestione dei timeout di risposta               
+
             messaggio=self.risp_ari(messaggio)
             time.sleep(0.2)
     
@@ -130,22 +158,49 @@ class comunicazione_daari(threading.Thread):
         s.settimeout(0)
         try:
             raw_bytestream = s.recv(BUFFER_SIZE)      #metto nella coda di ricezione le info di arduino
-            messaggio+=str(raw_bytestream)
-            
+            #messaggio+=str(raw_bytestream)
+            messaggio+=raw_bytestream.decode("utf-8")
         except Exception as msg:
             if str(msg).find("[WinError 10035]")<0:
                 messaggio=''
                 print("errore socket")
                 return messaggio
+        
+
+        if  messaggio!='' and messaggio!=None:
+            #print("messaggio",messaggio)
+            pass;
+        
         mex=arianna_utility.gestiscirisp(messaggio)
-        if (time.time()-cfg.tempo_radar>5 and cfg.time_radar==1):
-            if semaelabora._value==0:
-                semaelabora.release()
-                arianna_utility.prt("semaforo rilasciato",3,my_gui)
-            cfg.time_radar=2
-            arianna_utility.prt("timeout radar",3,my_gui)
+
+
+        
         for m in mex[0]:
             arianna_utility.prt(str(m),3,my_gui)
+            if m[0:3]=='scp' and m.find("=")>=0:
+                if m.split("=")[0].split(":")[1]=='statoScope':
+                    if int(m.split('=')[1])==1:
+                        cfg.messaggiesptx_altro.put('1i2')
+                        time.sleep(0.2)
+                        cfg.tempo_registrazione=time.time()
+                    if int(m.split('=')[1])==4 and cfg.sem_registrazione==1:
+                        cfg.sem_registrazione=2
+                        arianna_utility.prt("fine registrazione chiedo dati", 2, my_gui)
+                        for i in range(0,cfg.num_registrazioni):
+                            cfg.dati_registrazione.append('')
+                        cfg.registrazione_ultimo=0
+                        cfg.messaggiesptx_altro.put('1i90')
+                        cfg.sem_registrazione=2
+                        cfg.tempo_datiregistrazione=time.time()
+                if m.split(":")[1].find('dati')>=0:
+                    indice=m.split("=")[1]
+                    if int(indice.split(";")[0])==cfg.registrazione_ultimo:
+                        print("registro",cfg.registrazione_ultimo)
+                        cfg.dati_registrazione[cfg.registrazione_ultimo]=m.split("=")[1]
+                        cfg.tempo_datiregistrazione=time.time()
+                        arianna_utility.prt(arianna_utility.test_registrazione(''),3,my_gui)
+                        
+
             if m[0:3]=='ost' and m[0:4]!='osta':
                 cfg.dist_libera=int(m.split(";")[1])
             if m[0:3]=='mis':
@@ -187,9 +242,9 @@ class comunicazione_daari(threading.Thread):
             else:
                 pass;
                 #cfg.messaggiesprx.put(m)
-        messaggio=""
+        messaggio=''
         for m in mex[1]:
-            messaggio+m
+            messaggio=messaggio+m
             return messaggio
 
 
@@ -205,6 +260,8 @@ class comunicazione_perari (threading.Thread):
         messaggio=""
         while 1:
             self.com_ari_mov()
+            time.sleep(0.1)
+            self.com_ari_altro()  #comandi non bloccati da arianna in movimento
             time.sleep(0.1)
        
     def com_ari_mov(self):   #invio comandi per arianna coda movimento
@@ -273,6 +330,34 @@ class comunicazione_perari (threading.Thread):
             mystring=""
         statosmf.release()
     
+    def com_ari_altro(self):
+        if cfg.sem_registrazione==2 :  #mando nuove richieste do comunicazione
+            print('ultimo',cfg.registrazione_ultimo)
+            if cfg.dati_registrazione[cfg.registrazione_ultimo]!='' and cfg.registrazione_ultimo<cfg.num_registrazioni-1:
+                cfg.registrazione_ultimo=cfg.registrazione_ultimo+1
+                cfg.messaggiesptx_altro.put('1i9'+str(cfg.registrazione_ultimo))
+
+                time.sleep(0.2)
+        
+        if cfg.messaggiesptx_altro.empty()==False:
+            #invio comandi a arianna non movimento
+            mystring=cfg.messaggiesptx_altro.get()
+            if mystring.find("1i2")>=0:
+                arianna_utility.prt("test fine registrazione",1,my_gui)
+                cfg.sem_registrazione=1
+                cfg.tempo_registrazione=time.time() #gestione tempo
+                
+            mystring="!"+mystring+"?"
+            arianna_utility.prt(str(mystring),1,my_gui)
+            t=bytes(mystring, 'utf-8')
+            try:
+                if mystring.find('xx')<0:
+                    s.send(t)
+            except:
+                print("errore coda mov")
+                pass
+            
+    
     
 class elabora (threading.Thread):
     def __init__(self, threadID, name):
@@ -284,14 +369,12 @@ class elabora (threading.Thread):
         while 1:
             if  cfg.messaggiesprx.empty()==False:
                 msgxx=cfg.messaggiesprx.get()
-                #print("msg generico",msgxx)
                 if  msgxx[0:4]=='echo' :
                     arianna_utility.prt(str(msgxx),2,my_gui)
                     #arianna_utility.crea_mappa(msgxx,cfg.mappa,"assoluta",cfg.versoradar,cfg.posatt)
                     arianna_utility.trovadistanza(msgxx)   
                 
                 if  msgxx[0:4]=='echf' :
-                    
                     if semaelabora._value==0:
                         semaelabora.release()
                     arianna_utility.inizializza_mappa()
@@ -318,15 +401,17 @@ class elabora (threading.Thread):
        
         if cfg.percorsi.empty()==False and cfg.messaggiesptx.empty()==True and cfg.stato[0]==0 and  cfg.time_radar!=1:
             
-           
             destinazione=cfg.percorsi.get()
+            if destinazione[1][2]=='3R4' or destinazione[1][2]=='3R6' and cfg.tipo_moto=='':
+                cfg.tipo_moto=destinazione[1][2]   #salvo il tipo moto per questo tragitto
+            
             if destinazione[1][2]=='3R3' or destinazione[1][2]=='3R1':
                 arianna_utility.elencocmd([destinazione[1][3],destinazione[1][4],destinazione[1][0],destinazione[1][2],'1r'])
                 statosmf.release()  
                 semaelabora.release() 
                 return
 
-            if cfg.dist_libera<=50 and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)==0:
+            if cfg.dist_libera<int(cfg.ostacolo_distanza) and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)==0:
                 print("davanti non posso andare cosa faccio?")
                 cfg.messaggirx.put((time.time(),"1q10+160+10"))
                 cfg.tempo_radar=time.time()
@@ -334,36 +419,20 @@ class elabora (threading.Thread):
                 statosmf.release()   
                 #semaelabora.release() #non rilascio il semaforo, sarà la lettura echo a farlo
                 return
-            if  cfg.dist_libera<=50 and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)!=0:
-                nuovoangolo=90-int(cfg.ultimo_angolo_libero[0])
-                print("calcolo via di fuga ",nuovoangolo)  
-                cfg.percorsi.put(destinazione)
-                arianna_utility.elencocmd(['3A'+str(math.degrees(float(cfg.posatt[4]))+nuovoangolo),'3R6','1r','3D'+str(int(cfg.ultimo_angolo_libero[1])*10-500),'3R4','1r'])
-                cfg.ultimo_angolo_libero=[]
-                statosmf.release()
-                semaelabora.release()
-                return
-
-            a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2],destinazione[1][3])
-            #===================================================================
-            # if (destinazione[1][2]=='3R6' and dist>100):
-            #     #per r6 faccio prima movimnto a 0 d e angolo e poi cambio in r4
-            #     destinazione[1][2]='3R4'
-            #     destinazione[1][3]='999999'  
-            #     a[2]='3R4'
-            #     b=['3A'+str(ang),'3R6','1r']
-            #     arianna_utility.elencocmd(b)
-            #     a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2],destinazione[1][3])
-            #     destinazione[1][2]='3R6'
-            #     destinazione[1][3]=''  
-            #===================================================================
-            if (destinazione[1][2]=='3R6' and dist>100):
-                print('a',a)
+            a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2])
+            print("a",a)
+            if (cfg.tipo_moto=='3R6'):
                 #per r6 faccio prima movimnto a 0 d e angolo e poi cambio in r4
-                a=['3A'+str(ang),'3R6','1r',a[1],'3R4','1r']
+                destinazione[1][2]='3R4'
+                a[2]='3R4'
+                a[0]=''
+                b=['3A'+str(ang),'3R6','1r']
+                arianna_utility.elencocmd(b)
+
                                
-            if (dist<100 ):  #se la distanza è minore di 10 cm mi considero arrivato , mettere parametro?
+            if (dist<=100 ):  #se la distanza è minore di 10 cm mi considero arrivato , mettere parametro?
                 cfg.stato[0]=0
+                cfg.tipo_moto=''
 
             else:
                 cfg.percorsi.put(destinazione)
@@ -398,6 +467,7 @@ class mappa (threading.Thread):
 # **********param default****
 cfg.stato[0]=0
 
+
 if cfg.par_ini_car==1:
     temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
     arianna_utility.elencocmd(['3F'+cfg.ED,'3F1'+cfg.ED_BASE,'3F2'+cfg.BASELINE,'3F3'+str(temp),'3K0'+str(cfg.K0),'3E3'])
@@ -405,7 +475,7 @@ if cfg.par_ini_car==1:
     time.sleep(0.2)
     cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
     time.sleep(0.2)
-    cfg.messaggirx.put((time.time(),'3O101'))
+    cfg.messaggirx.put((time.time(),'3O1'+cfg.ostacolo_distanza))
 time.sleep(0.2)
 cfg.id_radar=arianna_utility.idmap()
 
@@ -434,7 +504,7 @@ thread5.start()
 time.sleep(0.1)
 thread6.start()
 
-webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
+#webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
 #apro browser
 root.mainloop()
 

@@ -10,6 +10,7 @@ import math
 import time
 import statistics
 import string
+import arianna_gui
 
 from sympy import Line,Point,Segment,Circle
 import numpy
@@ -18,6 +19,43 @@ import operator as op
 
 
 #*************************utilita varie****************************************************
+
+def registratore(x):
+    #lancia serie di comandi per attivare registratore
+    cfg.messaggiesptx_altro.put('1i5'+x[:-1])
+    time.sleep(0.2)
+    cfg.messaggiesptx_altro.put('1i0')
+    time.sleep(0.2)
+    cfg.messaggiesptx_altro.put('1i1')
+    time.sleep(0.2)
+    cfg.messaggiesptx_altro.put('1i2')
+    time.sleep(0.2)
+
+def test_registrazione(tipo='timeout'):
+    completo=1
+    a=''
+    for i in range(0,cfg.num_registrazioni-1):
+        if cfg.dati_registrazione[i]=='':
+            completo=0 
+            if tipo=='timeout':
+                a=("problema dati registrazione forzo 1i9 "+str(i))
+                if cfg.registrazione_ultimo>0:
+                    cfg.registrazione_ultimo=cfg.registrazione_ultimo-1
+                    time.sleep(0.5)
+                    cfg.tempo_datiregistrazione=time.time()
+                else:
+                    cfg.messaggiesptx_altro.put('1i90')
+           
+    if completo==1:
+        cfg.sem_registrazione=0
+        a=("ho tutti i dati registrazione li stampo")
+        for i in range(0,cfg.num_registrazioni-1):
+            print(cfg.dati_registrazione[i])
+        
+    if a!='':
+        return a
+
+    
 
 def prt(testo,dest,gui):
     if dest==0:
@@ -51,9 +89,9 @@ def svuota_coda(coda):
             
 def elencocmd(elenco,pausa=0.1):
     for l in elenco:
-        print(l)
-        cfg.messaggirx.put((time.time(),l))
-        time.sleep(pausa)
+        if l!='':
+            cfg.messaggirx.put((time.time(),l))
+            time.sleep(pausa)
     
 
 #********************funz geometriche e matematiche ****************************************
@@ -104,7 +142,7 @@ def calcola_movimento(angolo,distanza):
     print("target x, y",cx,by)
     return cx,by
 
-def calcola_movimento_inv(x,y,r,a):
+def calcola_movimento_invxx(x,y,r,a):
     dist=distanza_punti([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
     ang=angolo_base([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
     #print("dist,ang",dist,ang)
@@ -112,6 +150,13 @@ def calcola_movimento_inv(x,y,r,a):
         return ['3A'+str(round(ang, 2)),'3D'+str(round(dist, 0)),r,'1r'],dist,ang
     else:
         return ['3D'+str(round(dist, 0)),r,'1r'],dist,ang
+
+def calcola_movimento_inv(x,y,r):
+    dist=distanza_punti([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
+    ang=angolo_base([float(cfg.posatt[2]),float(cfg.posatt[3])],[float(x),float(y)])
+    #print("dist,ang",dist,ang)
+    return ['3A'+str(round(ang, 2)),'3D'+str(round(dist, 0)),r,'1r'],dist,ang
+
 
 def punto_medio_seg(p1,p2):
     xm=(p1[0]+p2[0])/2
@@ -548,14 +593,13 @@ def trovadistanza(strx):
         
         if distanza<=cfg.max_dst:
             vett.append(distanza)
-            if distanza>100 and len(cfg.ultimo_angolo_libero)==0:
-                cfg.ultimo_angolo_libero=[str(int(a[1])+cfg.errore_servo),distanza]
-            if distanza>100 and cfg.ultimo_angolo_libero[1]<distanza:
-                cfg.ultimo_angolo_libero=[str(int(a[1])+cfg.errore_servo),distanza]
-                
-    
     if len(vett)>=5:
         x=statistics.median(vett)
+        if x>100 and len(cfg.ultimo_angolo_libero)==0:
+            cfg.ultimo_angolo_libero=[str(int(a[1])+cfg.errore_servo),x]
+        if distanza>100 and cfg.ultimo_angolo_libero[1]<x:
+            cfg.ultimo_angolo_libero=[str(int(a[1])+cfg.errore_servo),x]
+        cfg.ostacoli.append([int(a[1])+cfg.errore_servo,x])
         arianna_db.scrivo_db_mappa(str(int(a[1])+cfg.errore_servo),x,'l')
         return x,int(a[1])+cfg.errore_servo
     
@@ -769,6 +813,7 @@ def idmap():
 
 
 def gestiscirisp(stringa):
+    print(stringa)
     #risposta=[]
     pezziok=[]
     pezziko=[]

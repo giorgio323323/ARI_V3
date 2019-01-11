@@ -7,6 +7,7 @@ Created on 10/apr/2018
 import config as cfg
 from tkinter import  Button,Text,END,scrolledtext,NE
 import time
+import arianna_utility
 
 
 #===============================================================================
@@ -48,7 +49,10 @@ class MyFirstGUI:
     
     def clicked(self):
         #messagebox.showinfo( "Hello Python", self.comandi.get("1.0",END))
-        cfg.messaggirx.put((time.time(),self.comandi.get("1.0",END)))
+        if self.comandi.get("1.0",END)[:2]!='1i':
+            cfg.messaggirx.put((time.time(),self.comandi.get("1.0",END)))
+        else:
+            arianna_utility.registratore(self.comandi.get("1.0",END)[2:])
 
 
 
