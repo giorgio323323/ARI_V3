@@ -1,4 +1,9 @@
-leggi il wiki !!
+la documentazione è in costruzione.
+ogni folder sarà un repository e conterrà un proprio readme
+
+la documentazione sarà in markdown language per poter essere editata e condivisa
+
+
 
 # ARI_V3
 versione 3 di Ari(anna)
