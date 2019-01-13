@@ -333,11 +333,14 @@ class comunicazione_perari (threading.Thread):
     def com_ari_altro(self):
         if cfg.sem_registrazione==2 :  #mando nuove richieste do comunicazione
             print('ultimo',cfg.registrazione_ultimo)
-            if cfg.dati_registrazione[cfg.registrazione_ultimo]!='' and cfg.registrazione_ultimo<cfg.num_registrazioni-1:
-                cfg.registrazione_ultimo=cfg.registrazione_ultimo+1
-                cfg.messaggiesptx_altro.put('1i9'+str(cfg.registrazione_ultimo))
-
-                time.sleep(0.2)
+            try:
+                if cfg.dati_registrazione[cfg.registrazione_ultimo]!='' and cfg.registrazione_ultimo<cfg.num_registrazioni-1:
+                    cfg.registrazione_ultimo=cfg.registrazione_ultimo+1
+                    cfg.messaggiesptx_altro.put('1i9'+str(cfg.registrazione_ultimo))
+    
+                    time.sleep(0.2)
+            except:
+                pass;
         
         if cfg.messaggiesptx_altro.empty()==False:
             #invio comandi a arianna non movimento
@@ -412,6 +415,14 @@ class elabora (threading.Thread):
                 return
 
             if cfg.dist_libera<int(cfg.ostacolo_distanza) and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)==0:
+                px_ost,py_ost=arianna_utility.calcola_movimento(math.degrees(float(cfg.posatt[4])),float(cfg.ostacolo_distanza))
+                p_dest=[destinazione[1][0],destinazione[1][1]]
+                if arianna_utility.distanza_punti([px_ost,py_ost],p_dest)<=int(cfg.ostacolo_distanza):
+                    print ("ostacolo in zona di arrivo non raggiungibile")
+                    statosmf.release()   
+                    semaelabora.release()
+                    return
+
                 print("davanti non posso andare cosa faccio?")
                 cfg.messaggirx.put((time.time(),"1q10+160+10"))
                 cfg.tempo_radar=time.time()
@@ -503,8 +514,7 @@ time.sleep(0.1)
 thread5.start()
 time.sleep(0.1)
 thread6.start()
-
-#webbrowser.open('http://127.0.0.1:8081/ui2',new=1)
+webbrowser.open('http://127.0.0.1:8081/ui2',new=0)
 #apro browser
 root.mainloop()
 

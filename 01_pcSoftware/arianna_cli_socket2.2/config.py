@@ -67,7 +67,7 @@ tipo_moto=''
 
 #registratore
 dati_registrazione=[]
-num_registrazioni=11
+num_registrazioni=4
 registrazione_ultimo=0
 
 #gestione mappa
