@@ -49,7 +49,7 @@ def test_registrazione(tipo='timeout'):
     if completo==1:
         cfg.sem_registrazione=0
         a=("ho tutti i dati registrazione li stampo")
-        f=open("registrazione.txt",'w')
+        f=open("registrazione.txt",'a')
         cont=0
         for i in cfg.dati_registrazione:
             for datix in i.split('x'):
@@ -63,6 +63,7 @@ def test_registrazione(tipo='timeout'):
                     f.write(s)
                     cont+=1    
             print(i)
+        f.close()
     if a!='':
         return a
 

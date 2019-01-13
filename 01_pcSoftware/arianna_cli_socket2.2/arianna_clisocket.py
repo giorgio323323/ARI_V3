@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # -*- coding: Latin-1 -*-
 '''
+    13gen2019
+        migliorata gestione registrazione con salvataggio su file
+        migliorata gestione movimento, se ostacolo rilevato troppo vicino a target si ferma e segnala il problema
+        
     11gen2019
         attivata coda comandi arianna altro 
         per gestione comandi non in sincro con il movimento
@@ -232,7 +236,7 @@ class comunicazione_daari(threading.Thread):
             elif m[0:2]=='ir':
                 
                 cfg.messaggiesprx.put(m)
-                print('m2',m)
+                #print('m2',m)
             
             elif m[0:2]=='r:':
                 if m[0:4]=='r: 0':
@@ -312,10 +316,10 @@ class comunicazione_perari (threading.Thread):
                 cfg.stato[0]=1
                 cfg.messaggiesptx.put('xx')
             if mystring.find("3A")>=0:   #attesa
-                print('angtgt',float(mystring[2:]))
-                print("angari",float(cfg.posatt[4]))
+                #print('angtgt',float(mystring[2:]))
+                #print("angari",float(cfg.posatt[4]))
                 angnew=arianna_utility.minimoangolo(float(cfg.posatt[4]), float(mystring[2:]))
-                print('angnew',angnew)
+                #print('angnew',angnew)
                 mystring="3A"+str(angnew)
             mystring="!"+mystring+"?"
             #arianna_utility.prt(mystring,1,my_gui)
@@ -346,7 +350,7 @@ class comunicazione_perari (threading.Thread):
             #invio comandi a arianna non movimento
             mystring=cfg.messaggiesptx_altro.get()
             if mystring.find("1i2")>=0:
-                arianna_utility.prt("test fine registrazione",1,my_gui)
+                #arianna_utility.prt("test fine registrazione",1,my_gui)
                 cfg.sem_registrazione=1
                 cfg.tempo_registrazione=time.time() #gestione tempo
                 
@@ -405,7 +409,7 @@ class elabora (threading.Thread):
         if cfg.percorsi.empty()==False and cfg.messaggiesptx.empty()==True and cfg.stato[0]==0 and  cfg.time_radar!=1:
             
             destinazione=cfg.percorsi.get()
-            if destinazione[1][2]=='3R4' or destinazione[1][2]=='3R6' and cfg.tipo_moto=='':
+            if (destinazione[1][2]=='3R4' or destinazione[1][2]=='3R6') and cfg.tipo_moto=='':
                 cfg.tipo_moto=destinazione[1][2]   #salvo il tipo moto per questo tragitto
             
             if destinazione[1][2]=='3R3' or destinazione[1][2]=='3R1':
@@ -415,15 +419,15 @@ class elabora (threading.Thread):
                 return
 
             if cfg.dist_libera<int(cfg.ostacolo_distanza) and destinazione[1][2]!='3R6' and len(cfg.ultimo_angolo_libero)==0:
-                px_ost,py_ost=arianna_utility.calcola_movimento(math.degrees(float(cfg.posatt[4])),float(cfg.ostacolo_distanza))
+                px_ost,py_ost=arianna_utility.calcola_movimento(math.degrees(float(cfg.posatt[4])),float(cfg.dist_libera))
                 p_dest=[destinazione[1][0],destinazione[1][1]]
-                if arianna_utility.distanza_punti([px_ost,py_ost],p_dest)<=int(cfg.ostacolo_distanza):
-                    print ("ostacolo in zona di arrivo non raggiungibile")
+                if arianna_utility.distanza_punti([px_ost,py_ost],p_dest)<=int(cfg.ostacolo_distanza)*20:
+                    arianna_utility.prt("ostacolo in zona di arrivo target non raggiungibile",2,my_gui)
                     statosmf.release()   
                     semaelabora.release()
                     return
 
-                print("davanti non posso andare cosa faccio?")
+                arianna_utility.prt("davanti non posso andare cosa faccio?",2,my_gui)
                 cfg.messaggirx.put((time.time(),"1q10+160+10"))
                 cfg.tempo_radar=time.time()
                 cfg.percorsi.put(destinazione)
@@ -431,16 +435,17 @@ class elabora (threading.Thread):
                 #semaelabora.release() #non rilascio il semaforo, sarà la lettura echo a farlo
                 return
             a,dist,ang=arianna_utility.calcola_movimento_inv(destinazione[1][0], destinazione[1][1], destinazione[1][2])
-            print("a",a)
             if (cfg.tipo_moto=='3R6'):
                 #per r6 faccio prima movimnto a 0 d e angolo e poi cambio in r4
                 destinazione[1][2]='3R4'
                 a[2]='3R4'
-                a[0]=''
-                b=['3A'+str(ang),'3R6','1r']
-                arianna_utility.elencocmd(b)
-
-                               
+                a[0]='3A'+str(ang)
+                if abs(math.degrees(float(cfg.posatt[4]))%360.0 - float(ang))>5.0:
+                    b=['3A'+str(ang),'3R6','1r']
+                    arianna_utility.elencocmd(b)
+                    a[0]=''
+            
+            
             if (dist<=100 ):  #se la distanza è minore di 10 cm mi considero arrivato , mettere parametro?
                 cfg.stato[0]=0
                 cfg.tipo_moto=''
