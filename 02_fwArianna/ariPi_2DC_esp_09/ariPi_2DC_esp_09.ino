@@ -1,6 +1,9 @@
-#define V_FW_ATMEGA  "3.05.05"
+#define V_FW_ATMEGA  "3.05.06"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
+	06gen19 3.05.6
+		introdotto regolatore PI anche su modo R6
+		introdotto terminatore su risposta registratore
 
 	06gen19 3.05.5
 		inserito offset su PAN, F5. Salvato in E2prom
@@ -451,6 +454,11 @@ float kd_guida;   				///< guadagno derivativo    per controllo su distanza muro
 float kpTeta;      				///< guadagno proporzionale per controllo su teta
 float kiTeta;     				///< guadagno integrale per controllo su teta
 
+float posTarget;
+float posRef ;
+float step;
+int counterArresto;
+
 float   MAX_S     	= 0.2;      ///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
 float   teta      	= 0.0;      ///< teta attuale misurato da odometria
 float   xpos, ypos  = 0.0;      ///< x    attuale misurato da odometria
@@ -786,13 +794,80 @@ static long exeTime, tInit;
           in questo caso il robot deve ruotare per orientarsi con l'angolo dato.
           Questo vale per i modi 5 e 6.
 
-
-          All'approsimarsi della destinazione la velocità viene diminuita per raggiungere il target senza superarlo.
-
+			viene generato una rampa sull'angolo sino al target
+			un controllo PI genera la velocità del motore
+			
         */
         if ((statoRun == 5)||(statoRun == 6)){
+		
+			switch (SM_R5){
+				case 0:
+					posTarget = tetaRef;
+					posRef    = tetaMisura;		// init rampa posizione
+					
+					step 		= 3.14/(1.5/0.03);
+					if (posTarget < posRef)	step = -step;
+					counterArresto = 0;
+					SM_R5   = 1;
+					break;
+		
+				case 1:
+			
+					posRef 	+= step;
+					
+					if (abs(posRef - posTarget) < 2*(3.14/(1.5/0.03))){
+						posRef = posTarget;
+						counterArresto++;
+						// giunto al target lascio un secondo per stabilizzare posizione
+						// trascorso il tempo fermo il movimento
+						if (counterArresto > 30){
+							SM_R5     = 0;
+							statoRun    = 0;  // arresto senza rampa
+							motorSpeed  = 0;  // annullo rampa
+							motorSpeedRef = 0;
+							break;
+						}
+					}
 
-          errore = tetaRef -tetaMisura;
+					// regolatore PI
+
+					errore = posRef - tetaMisura;
+					raggiorSterzo =   kpTeta*errore;
+					i_part += raggiorSterzo*kiTeta;
+
+					// anti windup
+					// limito la parte integrale se la parte proporzionale è già alta
+					// questo evita di accumulare errore da scaricare
+					// se la somma di parte P e I supera il massimo, la parte integrale viene
+					// limitata a MAX - parte P
+					if  ((raggiorSterzo + i_part) >  MAX_STERZO){
+						i_part = MAX_STERZO - raggiorSterzo;
+						if (i_part < 0) i_part = 0;
+					}
+					if  ((raggiorSterzo + i_part) < -MAX_STERZO){
+						i_part = -MAX_STERZO - raggiorSterzo; // -2 - (-1) = -1, -2 -(-3) = 1
+						if (i_part > 0) i_part = 0;
+					}
+					if (i_part>  0.5) i_part =  0.5;
+					if (i_part< -0.5) i_part = -0.5;
+
+					raggiorSterzo += i_part;
+
+					// errore +/- 0.5
+
+					if (raggiorSterzo < -2.0) raggiorSterzo = -2.0;   // ID_005
+					if (raggiorSterzo >  2.0) raggiorSterzo =  2.0;   // ID_005
+					
+	                motorSpeed =  abs(raggiorSterzo)*110.0; //MODERATA;
+					if (raggiorSterzo > 0) 	direzione = AVANTI;
+					else					direzione = INDIETRO;
+
+					break;
+			}
+/*
+
+
+//          All'approsimarsi della destinazione la velocità viene diminuita per raggiungere il target senza superarlo.
 
           switch (SM_R5){
             case 0:
@@ -844,6 +919,7 @@ static long exeTime, tInit;
 
 
           }
+		  */
         }// SM_R5
 
 
@@ -893,14 +969,16 @@ static long exeTime, tInit;
 			
 			if (statoRun == 99) motorSpeedRef = 0;
 
-			// rampa sulla velocita'
-			if (motorSpeedRef > motorSpeed) motorSpeed += 2;
-			if (motorSpeedRef < motorSpeed) motorSpeed -= 4;  // 15
+			if ((statoRun != 6)&&(statoRun != 5)){
+				// rampa sulla velocita'
+				if (motorSpeedRef > motorSpeed) motorSpeed += 2;
+				if (motorSpeedRef < motorSpeed) motorSpeed -= 4;  // 15
 
-			if (motorSpeed > 250) motorSpeed = 250;
-			if ((motorSpeed <   1)&&(statoRun == 99)){
-				motorSpeed = 0;
-				statoRun   = 0;
+				if (motorSpeed > 250) motorSpeed = 250;
+				if ((motorSpeed <   1)&&(statoRun == 99)){
+					motorSpeed = 0;
+					statoRun   = 0;
+				}
 			}
 				
 			differenziale(motorSpeed);	
@@ -1038,116 +1116,116 @@ void differenziale(float motorSpeed){
 static float rs;
 static float Vlimite;
 
-  if ((statoRun != 5)&&(statoRun != 6)){
+	if ((statoRun != 5)&&(statoRun != 6)){
 
-    rs = raggiorSterzo;
+		rs = raggiorSterzo;
 
-    /* quando viene fatta una curva con una ruota bloccata l'altra ruota va a 255.
-       partendo da fermo ci può essere slittamento.
-       In questo caso si limita la velocità della ruota che marcia.
-    */
-    Vlimite = 255;
-    if (rs >  MAX_STERZO){      // ID_005
-      rs =  MAX_STERZO;
-      Vlimite = motorSpeed;
-    }
-    if (rs < -MAX_STERZO){
-      rs = -MAX_STERZO;
-      Vlimite = motorSpeed;
-    }
+		/* quando viene fatta una curva con una ruota bloccata l'altra ruota va a 255.
+		   partendo da fermo ci può essere slittamento.
+		   In questo caso si limita la velocità della ruota che marcia.
+		*/
+		Vlimite = 255;
+		if (rs >  MAX_STERZO){      // ID_005
+		  rs =  MAX_STERZO;
+		  Vlimite = motorSpeed;
+		}
+		if (rs < -MAX_STERZO){
+		  rs = -MAX_STERZO;
+		  Vlimite = motorSpeed;
+		}
 
-    VA = motorSpeed*(1.0+rs);
-    VB = motorSpeed*(1.0-rs);
+		VA = motorSpeed*(1.0+rs);
+		VB = motorSpeed*(1.0-rs);
 
-    if (VA >  Vlimite) VA =  Vlimite;
-    if (VA < -Vlimite) VA = -Vlimite;
+		if (VA >  Vlimite) VA =  Vlimite;
+		if (VA < -Vlimite) VA = -Vlimite;
 
-    if (VB >  Vlimite) VB =  Vlimite;
-    if (VB < -Vlimite) VB = -Vlimite;
+		if (VB >  Vlimite) VB =  Vlimite;
+		if (VB < -Vlimite) VB = -Vlimite;
 
-    if (direzione == INDIETRO){
-      if (VA >= 0 ){
-        dirVA = -1;   // ID_005
-        driver.motorAReverse(VA);
-      }
-      else{
-        dirVA =  1;
-        driver.motorAForward(VA);
-      }
-      if (VB >= 0 ){
-        dirVB = -1;
-        driver.motorBReverse(VB);
-      }
-      else{
-        dirVB =  1;
-        driver.motorBForward(VB);
-      }
-    }
-    else{ // direzione == AVANTI
+		if (direzione == INDIETRO){
+		  if (VA >= 0 ){
+			dirVA = -1;   // ID_005
+			driver.motorAReverse(VA);
+		  }
+		  else{
+			dirVA =  1;
+			driver.motorAForward(VA);
+		  }
+		  if (VB >= 0 ){
+			dirVB = -1;
+			driver.motorBReverse(VB);
+		  }
+		  else{
+			dirVB =  1;
+			driver.motorBForward(VB);
+		  }
+		}
+		else{ // direzione == AVANTI
 
-      if (VA >= 0 ){
-        dirVA =  1;   // ID_005
-        driver.motorAForward(VA);
-      }
-      else{
-        dirVA = -1;
-        driver.motorAReverse(VA);
-      }
-      if (VB >= 0 ){
-        dirVB =  1;
-        driver.motorBForward(VB);
-      }
-      else{
-        dirVB = -1;
-        driver.motorBReverse(VB);
-      }
-    }
-  }
-  else
-    if (statoRun == 5){// con una ruota ferma ruota su se stesso
+		  if (VA >= 0 ){
+			dirVA =  1;   // ID_005
+			driver.motorAForward(VA);
+		  }
+		  else{
+			dirVA = -1;
+			driver.motorAReverse(VA);
+		  }
+		  if (VB >= 0 ){
+			dirVB =  1;
+			driver.motorBForward(VB);
+		  }
+		  else{
+			dirVB = -1;
+			driver.motorBReverse(VB);
+		  }
+		}
+	}
+	else
+		if (statoRun == 5){// con una ruota ferma ruota su se stesso
 
-      if (direzione == AVANTI){
-        VB = 0;
-        VA = motorSpeed;
-        dirVA = 1;
-        dirVB = 0;
-        driver.motorBForward(VB);
-        driver.motorAForward(VA);
-      }
-      else{
-        VA = 0;
-        VB = motorSpeed;
-        dirVB = 1;
-        dirVA = 0;
-        driver.motorBForward(VB);
-        driver.motorAForward(VA);
-      }
-    }
-  else
-    if(statoRun == 6){// ruota su se stesso con ruote in direzioni opposte
-      if (direzione == AVANTI){
-        VA = motorSpeed;
-        VB = motorSpeed;
-        dirVB = -1;
-        dirVA =  1;
-        driver.motorAForward(motorSpeed);
-        driver.motorBReverse(motorSpeed);
-      }
-      else{
-        VA = motorSpeed;
-        VB = motorSpeed;
-        dirVB =  1;
-        dirVA = -1;
-        driver.motorBForward(motorSpeed);
-        driver.motorAReverse(motorSpeed);
-      }
-    }
+			if (direzione == AVANTI){
+				VB = 0;
+				VA = motorSpeed;
+				dirVA = 1;
+				dirVB = 0;
+				driver.motorBForward(VB);
+				driver.motorAForward(VA);
+			}
+			else{
+				VA = 0;
+				VB = motorSpeed;
+				dirVB = 1;
+				dirVA = 0;
+				driver.motorBForward(VB);
+				driver.motorAForward(VA);
+			}
+		}
+		else
+		if(statoRun == 6){// ruota su se stesso con ruote in direzioni opposte
+			if (direzione == AVANTI){
+				VA = motorSpeed;
+				VB = motorSpeed;
+				dirVB = -1;
+				dirVA =  1;
+				driver.motorAForward(motorSpeed);
+				driver.motorBReverse(motorSpeed);
+			}
+			else{
+				VA = motorSpeed;
+				VB = motorSpeed;
+				dirVB =  1;
+				dirVA = -1;
+				driver.motorBForward(motorSpeed);
+				driver.motorAReverse(motorSpeed);
+			}
+		}
 
-    // informazione per lettura encoder
-  if (VA == 0)  VA_zero = 1;
-  else      VA_zero = 0;
-  if (VB == 0)  VB_zero = 1;
-  else      VB_zero = 0;
+		// informazione per lettura encoder
+		if (VA == 0)  VA_zero = 1;
+		else      VA_zero = 0;
+		if (VB == 0)  VB_zero = 1;
+		else      VB_zero = 0;
 
 }
 
@@ -2351,7 +2429,7 @@ int scope(char cmd, int argomento, int ch1n, int ch2n, int ch3n, int ch4n){
 
 static int testa, statoScope, startIndex;
 static int sampleAcquired, decimation, decimationCounter;
-	
+
 	if (cmd != -1){
 		// init
 		if (cmd=='0'){
@@ -2359,7 +2437,7 @@ static int sampleAcquired, decimation, decimationCounter;
 			statoScope = 0;
 			risposta =  "scp:init";
 		}
-		
+
 		// start acquisizione
 		if (cmd=='1'){
 			statoScope = 1;
@@ -2368,53 +2446,60 @@ static int sampleAcquired, decimation, decimationCounter;
 			decimationCounter = decimation;
 			risposta =  "scp:statAcd";
 		}
-		
+
 		// chiedo stato
 		if (cmd=='2' ){
 			risposta =  "scp:statoScope= " + String(statoScope);
 		}
-		
+
 		if (cmd=='3' ){
 			risposta =  "scp:testa= " + String(testa);
 		}
-		
+
 		// imposta ogni quanti campioni acquisire il segnale
 		if (cmd=='5'){
 			decimation = argomento;
 			risposta =  "scp:decimation= " + String(decimation);
 		}
 	}
-	
+
+
+#define SAMPLE_FOR_READING	5
 	//read data
 	if(cmd=='9'){
-		if (argomento < nOfSamples){
+		//argomento *= SAMPLE_FOR_READING; // torno cinque campioni alla volte
+						 // argomento indica la cinquina
+		if (argomento < nOfSamples/SAMPLE_FOR_READING){
 			risposta = "scp:dati="		+\
-			String(argomento)			+";"+\
-			String(ch1[argomento])		+";"+\
-			String(ch2[argomento])		+";"+\
-			String(ch3[argomento])		+";"+\
-			String(ch4[argomento]);
+			String(argomento)			+";";
+			for (int index = 0; index <=(SAMPLE_FOR_READING - 1); index++){
+				risposta += String(ch1[argomento*SAMPLE_FOR_READING +  index])		+";"+\
+							String(ch2[argomento*SAMPLE_FOR_READING +  index])		+";"+\
+							String(ch3[argomento*SAMPLE_FOR_READING +  index])		+";"+\
+							String(ch4[argomento*SAMPLE_FOR_READING +  index])		+";"+\
+							String("x;");
+			}
 		}
-		else risposta =  "scp: indice troppo grosso";				
+		else risposta =  "scp: indice troppo grosso";
 	}
 
 	// run
 	if(statoScope == 1){
-		
+
 		if (decimationCounter == 0)	decimationCounter = decimation;
 		else{
 			decimationCounter--;
 			return(statoScope);
-		}		
+		}
 		if (testa >= nOfSamples) testa = 0;
-		
+
 		ch1[testa] = teta;
 		ch2[testa] = xpos;
 		ch3[testa] = ypos;
 		ch4[testa] = millis();
 		testa++;
 		sampleAcquired++;
-		
+
 		// teminate l'acquisizione va in stop
 		if (sampleAcquired >= nOfSamples) statoScope = 4;
 	}
