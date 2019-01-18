@@ -10,7 +10,7 @@ import queue
 import os
 
 #parametri di configurazione fisica arianna
-par_ini_car=1
+par_ini_car=0
 ED="1"
 ED_BASE="1"
 BASELINE="200"
@@ -86,3 +86,5 @@ ang_prec_rel_ass=[]
 
 #impostazione path
 localpath=os.path.dirname(os.path.abspath(__file__))
+if os.path.isfile(localpath+"/okini.txt"):
+    par_ini_car=1
