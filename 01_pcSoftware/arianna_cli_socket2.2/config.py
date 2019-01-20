@@ -10,7 +10,7 @@ import queue
 import os
 
 #parametri di configurazione fisica arianna
-par_ini_car=1
+par_ini_car=0
 ED="1"
 ED_BASE="1"
 BASELINE="200"
@@ -67,7 +67,7 @@ tipo_moto=''
 
 #registratore
 dati_registrazione=[]
-num_registrazioni=4
+num_registrazioni=20
 registrazione_ultimo=0
 
 #gestione mappa

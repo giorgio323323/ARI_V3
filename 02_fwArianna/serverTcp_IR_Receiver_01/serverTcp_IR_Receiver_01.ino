@@ -1,8 +1,10 @@
-#define V_FW_ESP8266	"!1.00.02?"
+#define V_FW_ESP8266	"!1.00.03?"
 /*@serverTcp_IR_Receiver_o1.ino
  * 	stuffcube.wordpress.com
 
-
+	20gen19	1.00.03
+		aggiunto identificato del Robot a UDP 
+	
 	28dic18 1.00.02
 		rimossa richiesta automatica del comando 'p'
 		rimossa impostazione tempo ">p" in b_getCmd.ino
@@ -99,8 +101,10 @@ void tick()
 
 
  
-char* 		ssid;
-char* 		password;
+char* ssid;
+char* password;
+char* nomeari;
+char* portAri;
  
 #ifdef COMPILA_PER_ESP 
 	#ifndef UNIT_TEST
@@ -190,6 +194,11 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 	ticker.attach(0.2, tick);
 }
 
+WiFiManagerParameter custom_nome ( "nome",   "nome arianna", nomeari, 10);
+WiFiManagerParameter custom_porta("porta", "porta udp 8888", portAri,  4);
+
+
+
 /*********************************************/
 /*
  * 
@@ -219,6 +228,9 @@ void setup()
 	//WiFiManager
 	//Local initialization. Once its business is done, there is no need to keep it around
 	WiFiManager wifiManager;
+	wifiManager.addParameter( &custom_nome );
+	wifiManager.addParameter( &custom_porta);
+	
 	//reset settings - for testing
 	//wifiManager.resetSettings();
 
@@ -274,21 +286,25 @@ void loop() {
 			serverClient = server.available();
 			
 			if (verbose) Serial.println("New client");
-	
 		}
 	}
 	if (!serverClient.connected()) {
 		delay(500);
 		//Serial.println("connessione chiusa");
 		  IPAddress broadcastIp = WiFi.localIP();
+
 		// se non ci sono client connessi
 		// invia nome sulla rete per essere trovato
 		broadcastIp[3] = 255;
 		
 		if (verbose)	Serial.println(WiFi.localIP());
 		
-		UDP.beginPacket(broadcastIp, udpport);
-		UDP.print("arianna:");
+		String tempprt = String(custom_porta.getValue());
+		udpport = tempprt.toInt();
+		
+		UDP.beginPacket ( broadcastIp, udpport );
+		UDP.print(String( custom_nome.getValue()));
+		//UDP.print("arianna:");
 		UDP.endPacket();
 		serverClient.stop();
 	}

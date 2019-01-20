@@ -75,7 +75,7 @@ def ricerca_arianna(sock):
 
 
 
-simu=1
+simu=2
 attcom=0
 cont=0
 while attcom==0:
@@ -104,7 +104,7 @@ while attcom==0:
             simu=0
             print("vado in simulazione")
     elif simu==2:
-        ipclient="192.168.1.210"
+        ipclient="192.168.1.14"
         TCP_PORT = 81
         BUFFER_SIZE = 256
         attcom=1
@@ -139,7 +139,7 @@ class comunicazione_daari(threading.Thread):
                 arianna_utility.prt("timeout radar",3,my_gui)
             #timeout registrazione
 
-            if (time.time()-cfg.tempo_registrazione>10 and cfg.sem_registrazione==1):
+            if (time.time()-cfg.tempo_registrazione>40 and cfg.sem_registrazione==1):
                 print("timeout registrazione")
                 arianna_utility.prt("problema registrazione forzo 1i2", 2, my_gui)
                 cfg.messaggiesptx_altro.put('1i2')

@@ -1,7 +1,11 @@
-#define V_FW_ATMEGA  "3.05.06"
+#define V_FW_ATMEGA  "3.05.07"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
-	06gen19 3.05.6
+	20gen19 3.05.7
+		la registrazione, una volta attivata, parte quando R diventa diverso da zero.
+		Cioe quando ARI inizia a muoversi
+
+	13gen19 3.05.6
 		introdotto regolatore PI anche su modo R6
 		introdotto terminatore su risposta registratore
 
@@ -461,8 +465,8 @@ int counterArresto;
 
 float   MAX_S     	= 0.2;      ///< max_s = LARGHEZZA_A_MEZZI/Raggio massimo
 float   teta      	= 0.0;      ///< teta attuale misurato da odometria
-float   xpos, ypos  = 0.0;      ///< x    attuale misurato da odometria
-float   tetaRef     = 0.0;      ///< y    attuale misurato da odometria
+float   xpos, ypos  = 0.0;      ///< x, y attuale misurato da odometria
+float   tetaRef     = 0.0;      ///<teta di setPoint, Reference
 
 int   distRef     	= 60;     	///< distanza riferimento per modo R1/R2           [cm]
 int   distOstacolo  = 51;       ///< distanza dell'Ostacolo per arresto automatico [cm]. N.B. sotto i 50 cm a volte non legge.
@@ -2429,18 +2433,24 @@ int scope(char cmd, int argomento, int ch1n, int ch2n, int ch3n, int ch4n){
 
 static int testa, statoScope, startIndex;
 static int sampleAcquired, decimation, decimationCounter;
+#define INIT			0
+#define WAIT_FOR_RUN	1
+#define RECORDING		2
+#define RECORDING_ENDED	4
+
+#define SAMPLE_FOR_READING	5
 
 	if (cmd != -1){
 		// init
 		if (cmd=='0'){
 			testa = 0;
-			statoScope = 0;
+			statoScope = INIT;
 			risposta =  "scp:init";
 		}
 
 		// start acquisizione
 		if (cmd=='1'){
-			statoScope = 1;
+			statoScope = WAIT_FOR_RUN;
 			startIndex = testa;
 			sampleAcquired = 0;
 			decimationCounter = decimation;
@@ -2455,7 +2465,7 @@ static int sampleAcquired, decimation, decimationCounter;
 		if (cmd=='3' ){
 			risposta =  "scp:testa= " + String(testa);
 		}
-
+		
 		// imposta ogni quanti campioni acquisire il segnale
 		if (cmd=='5'){
 			decimation = argomento;
@@ -2463,8 +2473,6 @@ static int sampleAcquired, decimation, decimationCounter;
 		}
 	}
 
-
-#define SAMPLE_FOR_READING	5
 	//read data
 	if(cmd=='9'){
 		//argomento *= SAMPLE_FOR_READING; // torno cinque campioni alla volte
@@ -2484,31 +2492,36 @@ static int sampleAcquired, decimation, decimationCounter;
 	}
 
 	// run
-	if(statoScope == 1){
+	switch (statoScope){
+		case WAIT_FOR_RUN: // wait for run
+		
+			if (statoRun != 0) statoScope = RECORDING;
+			break;
+		
+		case RECORDING: // recording
+			if (decimationCounter == 0)	decimationCounter = decimation;
+			else{
+				decimationCounter--;
+				return(statoScope);
+			}
+			if (testa >= nOfSamples) testa = 0;
 
-		if (decimationCounter == 0)	decimationCounter = decimation;
-		else{
-			decimationCounter--;
-			return(statoScope);
-		}
-		if (testa >= nOfSamples) testa = 0;
+			ch1[testa] = teta;
+			ch2[testa] = xpos;
+			ch3[testa] = ypos;
+			ch4[testa] = millis();
+			testa++;
+			sampleAcquired++;
 
-		ch1[testa] = teta;
-		ch2[testa] = xpos;
-		ch3[testa] = ypos;
-		ch4[testa] = millis();
-		testa++;
-		sampleAcquired++;
+			// teminate l'acquisizione va in stop
+			if (sampleAcquired >= nOfSamples) statoScope = RECORDING_ENDED;
+			break;
 
-		// teminate l'acquisizione va in stop
-		if (sampleAcquired >= nOfSamples) statoScope = 4;
+		// stop
+		case RECORDING_ENDED:
+			;
+			break;
 	}
-
-	// stop
-	if(statoScope=='4'){
-		;
-	}
-
 	return(statoScope);
 
 }
