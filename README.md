@@ -15,7 +15,7 @@ Avere un costo che permettesse a ognuno di averlo.
 Doveva avere le possibilità di un robot "Grande", permettere di fare se cose che si fanno sui robot "seri".
 
 
-Costando il materiale circa 100 € permette a ognuno di averlo per poterci lavorale.
+Costando il materiale circa 100 € permette a ognuno di averlo per poterci lavorare.
 Ha dei motori che gli permettono di muoversi. Sono dotati di encoder sulle ruote, ha quindi un algoritmo di odometria. L'odometria gli permette di sapere dove sta andando.
 Ha un Lidar, un radar laser, montato su un servo che permette di ruotarlo. Questo permette di analizzare gli algoritmi di scansione in due dimensione.
 Gli permette anche di viaggiare mantenendo la distanza da una parete laterale o di seguire una persona.
@@ -25,7 +25,8 @@ monta un puntatore laser per indicare cose, ha un sensore IR per poter tornare a
 
 Per ultimo ha una interfaccia per bussola magnetica e navigatore inerziale completo.
 
-Ogni suo aspetto può essere studiato senza timore di rompere qualcosa.
+Ogni suo aspetto può essere studiato 
+senza timore di rompere qualcosa.
 
 
 
@@ -33,3 +34,4 @@ istruzioni di installazione del SW nel folder:
 ARI_V3\00_doc\00_installaECompila
 
 
+a cura di https://stuffcube.wordpress.com/
