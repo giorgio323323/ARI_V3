@@ -11,18 +11,80 @@ import math
 import time
 import threading
 import os
+import configparser
 #===============================================================================
 # utility web
 #===============================================================================
 
 class Benvenuto:
     def index(self):
-        return "Benvenuto!"
+        f=open(cfg.localpath+'/scheda/inizio.html','r')
+        h=f.read()
+        h=h.replace('XXXXXX',cfg.nome_ari)
+        return h
     index.exposed = True
 
     def index2(self):
         return open(cfg.localpath+'/scheda/index.html')
     index2.exposed = True
+    
+    def cfg(self):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        sezioni=['DEFAULT']
+        f=open(cfg.localpath+'/scheda/cfg.html','r')
+        
+        t='<BR>************<BR>[DEFAULT]<BR>'
+        for opzi in config.defaults():
+                t+=opzi+' = '+config.get('DEFAULT', opzi)+'<br>'
+
+        for sez in config.sections():
+            sezioni.append(sez)
+            t+='<BR>************<BR>['+sez+']<BR>'
+            for opzi in config.options(sez):
+                t+=opzi+' = '+config.get(sez, opzi)+'<br>'
+        
+        t1='<form action="sceltari" id="sceltari" method="get" name="sceltari" target="_new"><select name="nome">'
+        for i in sezioni:
+            t1+='<option value="'+i+'">'+i+'</option>'
+        t1+='</select>'
+        t1+='<input type="submit" name="invia" value="invia"></form>'
+        t=t1+t
+        h=f.read()
+        h=h.replace('confxxx',t)
+        return h
+    cfg.exposed = True
+    
+    def ini(self,invia='',nomearianna='',ed='',ed_base='',baseline='',diam_ruota='',encoderppr='',k0='',divisore_lidar='',ostacolo_distanza='',invx='',angolo_radar='',caricaini='',tcp_port='',udp_port='',errservo=''):
+        if invia=='':
+            return open(cfg.localpath+'/scheda/cfgini.html')
+        else:
+            config = configparser.ConfigParser()
+            config.read('config.ini')
+            config=self.aggiungi_ini(config ,nomearianna,'ed',ed)
+            config=self.aggiungi_ini(config ,nomearianna,'ed_base',ed_base)
+            config=self.aggiungi_ini(config ,nomearianna,'baseline',baseline)
+            config=self.aggiungi_ini(config ,nomearianna,'diam_ruota',diam_ruota)
+            config=self.aggiungi_ini(config ,nomearianna,'encoderppr',encoderppr)
+            config=self.aggiungi_ini(config ,nomearianna,'k0',k0)
+            config=self.aggiungi_ini(config ,nomearianna,'divisore_lidar',divisore_lidar)
+            config=self.aggiungi_ini(config ,nomearianna,'ostacolo_distanza',ostacolo_distanza)
+            config=self.aggiungi_ini(config ,nomearianna,'invx',invx)
+            config=self.aggiungi_ini(config ,nomearianna,'angolo_radar',angolo_radar)
+            config=self.aggiungi_ini(config ,nomearianna,'caricaini',caricaini)
+            config=self.aggiungi_ini(config ,nomearianna,'TCP_PORT',tcp_port)
+            config=self.aggiungi_ini(config ,nomearianna,'UDP_PORT',udp_port)
+            config=self.aggiungi_ini(config ,nomearianna,'errore_servo',errservo)
+
+            
+            
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile)    
+            
+            
+            
+            return "dati inseriti "+nomearianna
+    ini.exposed = True
     
     def ui2(self):
         return open(cfg.localpath+'/scheda/arianna5.0.html')
@@ -35,6 +97,16 @@ class Benvenuto:
         arianna_utility.mappa_seg(cfg.mappa,"assoluta",'')
         return open(cfg.localpath+'/scheda/mappasegok.html')
     mappa.exposed = True
+    
+    def sceltari(self,nome,invia):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        config.set('DEFAULT','nome_arianna',nome)
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+        return "impostata "+nome+" come arianna"
+        
+    sceltari.exposed = True
     
     def risposte(self):
         testo=''
@@ -98,6 +170,12 @@ class Benvenuto:
         print(dato)
         cfg.messaggirx.put((time.time(),dato))  #metto nella coda messaggi ricevuti il comando da eseguire
     bottonemov.exposed = True
+    
+    def aggiungi_ini(self,config,sezione,opzione,valore):
+        if not config.has_section(sezione) : config.add_section(sezione)
+        config.set(sezione,opzione,valore)
+        return config
+        
 
 class serverweb (threading.Thread):
     def __init__(self, threadID, name,porta):

@@ -8,24 +8,69 @@ Created on 02/ott/2017
 '''
 import queue
 import os
+import configparser
+
+nome_ari=''
+config = configparser.ConfigParser()
+config.read('config.ini')
+nome_ari=config.get('DEFAULT', 'nome_arianna')
 
 #parametri di configurazione fisica arianna
-par_ini_car=0
-ED="1"
-ED_BASE="1"
-BASELINE="200"
-DIAM_RUOTA=48
-encoderppr=20
-K0='8'
-divisore_lidar='10'
-ostacolo_distanza='49'
-invx=1   #mettere meno in caso di inversione destra e sinistra
-angolo_radar=2.5
+
+
+TCP_PORT=config.getint(nome_ari, 'TCP_PORT')
+UDP_PORT=config.getint(nome_ari, 'UDP_PORT')
+ostacolo_distanza=50
+comandi_ini=[]
+try:
+    if  config.get(nome_ari, 'ED')!='' :
+        comandi_ini.append('3F'+config.get(nome_ari, 'ED')) 
+except:
+    pass;
+try:
+    if  config.get(nome_ari, 'ED_base')!='' :
+        comandi_ini.append('3F1'+config.get(nome_ari, 'ed_base')) 
+except:
+    pass;
+try:
+    if  config.get(nome_ari, 'BASELINE')!='' :
+        comandi_ini.append('3F2'+config.get(nome_ari, 'BASELINE')) 
+except:
+    pass;
+try:
+    if  config.get(nome_ari, 'diam_ruota')!='' :
+        temp=round(config.getint(nome_ari, 'diam_ruota')*3.14/(4*config.getint(nome_ari, 'encoderppr ')), 4)
+        comandi_ini.append('3F3'+str(temp)) 
+except:
+    pass;
+try:
+    if  config.get(nome_ari, 'K0')!='' :
+        comandi_ini.append('3K0'+config.get(nome_ari, 'K0')) 
+except:
+    pass;
+if (len(comandi_ini)>0):
+    comandi_ini.append('3E3') 
+try:
+    if  config.get(nome_ari, 'divisore_lidar')!='' :
+        comandi_ini.append('3F4'+config.get(nome_ari, 'divisore_lidar')) 
+except:
+    pass;
+try:
+    if  config.get(nome_ari, 'ostacolo_distanza')!='' :
+        ostacolo_distanza=config.get(nome_ari, 'ostacolo_distanza')
+        comandi_ini.append('3O1'+config.get(nome_ari, 'ostacolo_distanza')) 
+except:
+    ostacolo_distanza=50
+
+
+
+invx=config.getint(nome_ari, 'invx')  #mettere meno in caso di inversione destra e sinistra
+angolo_radar=config.getfloat(nome_ari, 'angolo_radar')
+errore_servo=config.getint(nome_ari, 'errore_servo')  #aggiusto angolo del servo in quanto non e' mai in asse perfetto con arianna
+versoradar=config.get(nome_ari, 'versoradar') 
 max_dst=1000
-versoradar='sinistra'
-errore_servo=-10 #aggiusto angolo del servo in quanto non e' mai in asse perfetto con arianna
 
-
+#code di comunicazione
 messaggirx=queue.PriorityQueue()  #comandi che arrivano da utente
 messaggicli=queue.Queue(0)        #risposte da mandare a interfaccia
 percorsi=queue.PriorityQueue()    #inserisco i punti da raggiungere [4]=x,y,modo,posradar 
@@ -67,7 +112,7 @@ tipo_moto=''
 
 #registratore
 dati_registrazione=[]
-num_registrazioni=20
+num_registrazioni=4
 registrazione_ultimo=0
 
 #gestione mappa

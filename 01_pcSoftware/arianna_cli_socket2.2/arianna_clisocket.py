@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: Latin-1 -*-
 '''
+    21gen2019
+        gestita configurazione iniziale con file di configurazione create pagine per gestire configurazioni
     13gen2019
         migliorata gestione registrazione con salvataggio su file
         migliorata gestione movimento, se ostacolo rilevato troppo vicino a target si ferma e segnala il problema
@@ -56,9 +58,8 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #ip locale
 ip=([l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0])
 UDP_IP = ip
-UDP_PORT = 8888
 soudp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-soudp.bind((UDP_IP, UDP_PORT))
+soudp.bind((UDP_IP, cfg.UDP_PORT))
 
 
 datipostxt=open("pos.csv","w")
@@ -71,7 +72,10 @@ def ricerca_arianna(sock):
     sock.settimeout(3.0)
     try:
         data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-        print("ip",data,addr)
+        print("ip",data,addr,cfg.nome_ari)
+        if str(data).find(cfg.nome_ari)<0:
+            print("arianna di un altro")
+            return '0'
         return addr[0]
     except:
         print("non trovo arianna")
@@ -79,7 +83,9 @@ def ricerca_arianna(sock):
 
 
 
-simu=2
+simu=1
+if cfg.nome_ari=='DEFAULT':
+    simu=0
 attcom=0
 cont=0
 while attcom==0:
@@ -100,7 +106,7 @@ while attcom==0:
         if len(a)>6:
             ipclient=a
             attesa_arianna=0
-            TCP_PORT = 81
+            TCP_PORT = cfg.TCP_PORT
             BUFFER_SIZE = 256
             attcom=1
         cont+=1
@@ -108,8 +114,8 @@ while attcom==0:
             simu=0
             print("vado in simulazione")
     elif simu==2:
-        ipclient="192.168.1.14"
-        TCP_PORT = 81
+        ipclient="192.168.1.210"
+        TCP_PORT = cfg.TCP_PORT
         BUFFER_SIZE = 256
         attcom=1
         
@@ -143,7 +149,7 @@ class comunicazione_daari(threading.Thread):
                 arianna_utility.prt("timeout radar",3,my_gui)
             #timeout registrazione
 
-            if (time.time()-cfg.tempo_registrazione>40 and cfg.sem_registrazione==1):
+            if (time.time()-cfg.tempo_registrazione>10 and cfg.sem_registrazione==1):
                 print("timeout registrazione")
                 arianna_utility.prt("problema registrazione forzo 1i2", 2, my_gui)
                 cfg.messaggiesptx_altro.put('1i2')
@@ -484,14 +490,10 @@ class mappa (threading.Thread):
 cfg.stato[0]=0
 
 
-if cfg.par_ini_car==1:
-    temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
-    arianna_utility.elencocmd(['3F'+cfg.ED,'3F1'+cfg.ED_BASE,'3F2'+cfg.BASELINE,'3F3'+str(temp),'3K0'+str(cfg.K0),'3E3'])
 
-    time.sleep(0.2)
-    cfg.messaggirx.put((time.time(),'3F4'+cfg.divisore_lidar))
-    time.sleep(0.2)
-    cfg.messaggirx.put((time.time(),'3O1'+cfg.ostacolo_distanza))
+#    temp=round(cfg.DIAM_RUOTA*3.14/(4*cfg.encoderppr), 4)
+arianna_utility.elencocmd(cfg.comandi_ini)
+
 time.sleep(0.2)
 cfg.id_radar=arianna_utility.idmap()
 
@@ -519,7 +521,7 @@ time.sleep(0.1)
 thread5.start()
 time.sleep(0.1)
 thread6.start()
-webbrowser.open('http://127.0.0.1:8081/ui2',new=0)
+webbrowser.open('http://127.0.0.1:8081',new=0)
 #apro browser
 root.mainloop()
 
