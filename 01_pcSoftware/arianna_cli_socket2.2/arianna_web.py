@@ -36,15 +36,18 @@ class Benvenuto:
         
         t='<BR>************<BR>[DEFAULT]<BR>'
         for opzi in config.defaults():
-                t+=opzi+' = '+config.get('DEFAULT', opzi)+'<br>'
-
+            t+=opzi+' = '+config.get('DEFAULT', opzi)+'<br>'
+        t+='<a href="http://127.0.0.1:8081/ini?copia=DEFAULT" target="_NEW">duplica</a><br>'
+        
         for sez in config.sections():
             sezioni.append(sez)
             t+='<BR>************<BR>['+sez+']<BR>'
             for opzi in config.options(sez):
                 t+=opzi+' = '+config.get(sez, opzi)+'<br>'
-        
-        t1='<form action="sceltari" id="sceltari" method="get" name="sceltari" target="_new"><select name="nome">'
+            t+='<a href="http://127.0.0.1:8081/ini?copia='+sez+'" target="_NEW">duplica</a><br>'
+            t+='<a href="http://127.0.0.1:8081/ini?cancella='+sez+'" target="_NEW">elimina</a>'
+            t1='imposta configurazione<br><form action="sceltari" id="sceltari" method="get" name="sceltari" target="_new"><select name="nome">'
+            
         for i in sezioni:
             t1+='<option value="'+i+'">'+i+'</option>'
         t1+='</select>'
@@ -55,9 +58,26 @@ class Benvenuto:
         return h
     cfg.exposed = True
     
-    def ini(self,invia='',nomearianna='',ed='',ed_base='',baseline='',diam_ruota='',encoderppr='',k0='',divisore_lidar='',ostacolo_distanza='',invx='',angolo_radar='',caricaini='',tcp_port='',udp_port='',errservo=''):
+    def ini(self,invia='',nomearianna='',ed='',ed_base='',baseline='',diam_ruota='',encoderppr='',k0='',divisore_lidar='',ostacolo_distanza='',invx='',angolo_radar='',caricaini='',tcp_port='',udp_port='',errservo='',copia='',cancella=''):
+        if cancella!='':
+            config = configparser.ConfigParser()
+            config.read('config.ini')
+            config.remove_section(cancella)
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile) 
+            return "configurazione "+cancella+" cancellata!!"
+        if copia!='':
+            f=self.sostituisci_formini(copia)
+            return f
         if invia=='':
-            return open(cfg.localpath+'/scheda/cfgini.html')
+            
+            formini=open(cfg.localpath+'/scheda/cfgini.html','r')
+            f=formini.read()
+            for i in range (1,100):
+                test='c'+str(i)+'*'
+                f=f.replace(test,'')
+                
+            return f
         else:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -104,7 +124,7 @@ class Benvenuto:
         config.set('DEFAULT','nome_arianna',nome)
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
-        return "impostata "+nome+" come arianna"
+        return "impostata "+nome+" come arianna , riavviare programma per caricare configurazione"
         
     sceltari.exposed = True
     
@@ -175,6 +195,75 @@ class Benvenuto:
         if not config.has_section(sezione) : config.add_section(sezione)
         config.set(sezione,opzione,valore)
         return config
+    
+    def sostituisci_formini(self,sezione):
+        formini=open(cfg.localpath+'/scheda/cfgini.html','r')
+        f=formini.read()
+        if sezione!='DEFAULT':
+            f=f.replace('c1*',sezione)
+        else:
+            f=f.replace('c1*','')
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        try:
+            f=f.replace('c2*',config.get(sezione,'ed'))
+        except:
+            f=f.replace('c2*','')
+        try:
+            f=f.replace('c3*',config.get(sezione,'ed_base'))
+        except:
+            f=f.replace('c3*','')
+        try:
+            f=f.replace('c4*',config.get(sezione,'baseline'))
+        except:
+            f=f.replace('c4*','')
+        try:
+            f=f.replace('c5*',config.get(sezione,'diam_ruota'))
+        except:
+            f=f.replace('c5*','')
+        try:
+            f=f.replace('c6*',config.get(sezione,'encoderppr'))
+        except:
+            f=f.replace('c6*','')
+        try:
+            f=f.replace('c7*',config.get(sezione,'k0'))
+        except:
+            f=f.replace('c7*','')
+        try:
+            f=f.replace('c8*',config.get(sezione,'divisore_lidar'))
+        except:
+            f=f.replace('c8*','')
+        try:
+            f=f.replace('c9*',config.get(sezione,'ostacolo_distanza'))
+        except:
+            f=f.replace('c9*','')
+        try:
+            f=f.replace('c10*',config.get(sezione,'invx'))
+        except:
+            f=f.replace('c10*','')
+        try:
+            f=f.replace('c11*',config.get(sezione,'angolo_radar'))
+        except:
+            f=f.replace('c11*','')
+        try:
+            f=f.replace('c12*',config.get(sezione,'caricaini'))
+        except:
+            f=f.replace('c12*','')
+        try:
+            f=f.replace('c13*',config.get(sezione,'tcp_port'))
+        except:
+            f=f.replace('c13*','')
+        try:
+            f=f.replace('c14*',config.get(sezione,'udp_port'))
+        except:
+            f=f.replace('c14*','')
+        try:
+            f=f.replace('c15*',config.get(sezione,'errore_servo'))
+        except:
+            f=f.replace('c15*','')
+        return f
+        
+        
         
 
 class serverweb (threading.Thread):
