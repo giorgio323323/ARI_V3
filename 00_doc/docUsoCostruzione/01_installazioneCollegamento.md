@@ -17,7 +17,7 @@ Con questi valori si ricavano i parametri del robot.
 `ED         = 1`
 `ED_BASE    = 1`
 
-Calcolati questi numeri tramite la CLI[[1\]](#_ftn1) li imposto su ARI V3. 
+Calcolati questi numeri tramite la CLI[[1\]](#_ftn1) li configuro su ARI V3. 
 Scritto il comando lo si invia con *InviaCmd*.
 
 ![](Photos\cli.png)
@@ -30,23 +30,18 @@ Yn(m)xxx:
 
 il primo numero (Y) indica l’azione. 3 significa scrittura, 1 lettura. 
 n e il carattere opzionale m indica(no) quale azione fare, nell’esempio sotto F1 significa scrivi ED_BASE i caratteri successivi contengono l’argomento del comando, di norma il valore.
-Ad ogni comando inviato viene ritornata una risposta “comprensibile”. ad esempio se invio “3F11” mi viene ritornato “F1_ED_BASE: 1.000000”
+Ad ogni comando inviato viene ritornata una risposta “leggibile”. ad esempio se invio “3F11” mi viene ritornato “F1_ED_BASE: 1.000000”
 
 Il comando è il seguente:
 
 Fnxxx: imposta dei parametri del robot. "n" indica quale parametro, "xxx" è il valore. 
 
-​    F0xx ED           
+​    F0xx 	ED           
+​    F1xx 	ED_BASE            
+​    F2xx 	BASELINE           mm
+​    F3xx 	GIRO_RUOTA   mm = sviluppo ruota[mm]/(4*ppr)
 
-​    F1xx ED_BASE            
-
-​    F2xx BASELINE           mm
-
-​    F3xx GIRO_RUOTA   mm = sviluppo ruota[mm]/(4*ppr)
-
- 
-
-​    N.B. questi valori vanno attivati con un 3E3
+N.B. questi valori vanno attivati con un 3E3
 
  
 

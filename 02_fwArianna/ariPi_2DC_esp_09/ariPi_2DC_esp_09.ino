@@ -1,6 +1,11 @@
-#define V_FW_ATMEGA  "3.05.07"
+#define V_FW_ATMEGA  "3.05.08"
 /**@file ariPi_2DC_esp_08.ino */
 /* stuffcube.wordpress.com
+
+	23gen19 3.05.8
+	su blocco per ostacolo azzerare distanza residua #9, 
+	soluzione: distanza = odometro 
+
 	20gen19 3.05.7
 		la registrazione, una volta attivata, parte quando R diventa diverso da zero.
 		Cioe quando ARI inizia a muoversi
@@ -671,6 +676,7 @@ static long exeTime, tInit;
 			statoRun      	= 99;   // senza rampa
 			motorSpeed    	= 0;    // annullo rampa
 			motorSpeedRef   = 0;
+			distanza 		= odometro;
 			risposta    	= "ostacolo";
 			sendAnswer2(port);
 			if (sensore_ost==1){

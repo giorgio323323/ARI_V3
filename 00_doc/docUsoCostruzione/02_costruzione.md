@@ -49,20 +49,17 @@ Il comando è il seguente:
 Fnxxx: imposta dei parametri del robot. &quot;n&quot; indica quale parametro, &quot;xxx&quot; è il valore.
 
     F0xx ED
-    
     F1xx ED\_BASE
-    
     F2xx BASELINE               mm
-    
     F3xx GIRO\_RUOTA        mm = sviluppo ruota[mm]/(4\*ppr)
     
     N.B. questi valori vanno attivati con un 3E3
 
 Esempio:
 
-carreggiata = 220 mm
-diametro ruota = 50 mm
-ppr = 20
+carreggiata 		= 220 mm
+diametro ruota 	= 50 mm
+ppr 				= 20
 
 sviluppo ruota = 3.14\*50 = 157 mm
 
@@ -76,12 +73,12 @@ E0                salva i valori in E2prom
 
 I valori di default sono quelli sotto riportati.
 
-dovendo modificare i valori sotto sono riportati i singoli comandi.
+dovendo modificare i valori sotto sono riportati i singoli comandi.	
 
-ED                 = 1        inviare                 **F01**. **N.B. 0 è &quot;zero&quot; non &quot;O&quot; maiuscolo**
-ED\_BASE                    = 1        inviare                 **F11**
-BASELINE               = 220        inviare                **F2220**
-GIRO\_RUOTA        =1.9625 inviare                **F31.9625**
+ED                 		= 1        		inviare           	**F01**. **N.B. 0 è &quot;zero&quot; non &quot;O&quot; maiuscolo**
+ED\_BASE  		= 1        		inviare               **F11**
+BASELINE		= 220      	inviare                **F2220**
+GIRO\_RUOTA       	= 1.9625 	inviare                **F31.9625**
 
 inviare E3 per attivare i valori. La risposta conterrà la lista dei parametri attiva. Questo parametro serve anche per mostrare i parametri in uso.
 
@@ -133,20 +130,13 @@ Muove diritta? Proseguo e salvare i dati
 Ex: EEprom.  Esegue operazioni su dei parametri di taratura. Vedi procedura DataEEprom.
 
     E0 SCRIVI i parametri in E2prom,
-    
     E1 LEGGI i parametri in E2prom,
-    
     E2 rispristina in valori di DEFAULT,
-    
     E3 attiva e mostra i parametri CORRENTI,
 
 
 
-
-
-# Tabelle di collegamento
-
-
+# Tabelle di collegamento connettori
 
 | **J\_ENC** | **filo** | **Jb**asetta End Stop |   |
 | --- | --- | --- | --- |
@@ -156,8 +146,6 @@ Ex: EEprom.  Esegue operazioni su dei parametri di taratura. Vedi procedura Data
 | 4 | Viola | Emitter-Katode | Sx |
 | 5 | Blu | Collector | Sx |
 | 6 | verde | Anode | Sx |
-|   |   |   |   |
-|   |   |    |   |
 
  
 
@@ -172,16 +160,14 @@ Ex: EEprom.  Esegue operazioni su dei parametri di taratura. Vedi procedura Data
 | 6             | Bianco  | Led pointer           |
 | 8             | Nero    | 3V3 IR power supply   |
 
- 
 
 
-
-Collegamento motori
+# Collegamento motori
 
 Per il significato di sotto e sopra e destro sinistro fare riferimento all'immagine di montaggio. 
 
 **1) Notare il nottolino giallo rivolto verso l'interno**
-**2) Dx e Sx sono riferiti al robot in posizione di lavoro con la punta in avanti. nella foto c'è la vista da sotto e dx e sx sono quindi invertite.**
+**2) Dx e Sx sono riferiti al robot in posizione di lavoro con la punta in avanti. Nella foto c'è la vista da sotto e dx e sx sono quindi invertite.**
 
 
 
