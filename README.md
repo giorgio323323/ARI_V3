@@ -1,3 +1,6 @@
+il progetto si sposta in https://github.com/stuffcube/ARI_V3
+questo repository va in abbandono.
+
 la documentazione è in costruzione.
 ogni folder sarà un repository e conterrà un proprio readme
 
